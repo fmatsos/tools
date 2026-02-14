@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CleanGPT - Nettoyeur de texte</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-gradient: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+            --bg-dark: #0f172a;
+            --glass-bg: rgba(30, 41, 59, 0.7);
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --success: #10b981;
+            --danger: #ef4444;
+            --radius: 16px;
+            --shadow: 0 10px 40px -10px rgba(0,0,0,0.5);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; outline: none; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-dark);
+            background-image: 
+                radial-gradient(circle at 15% 50%, rgba(99, 102, 241, 0.15) 0%, transparent 25%),
+                radial-gradient(circle at 85% 30%, rgba(168, 85, 247, 0.15) 0%, transparent 25%);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 2rem 1rem;
+        }
+
+        /* Layout Container */
+        .app-container {
+            width: 100%;
+            max-width: 800px;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Header */
+        header {
+            text-align: center;
+            margin-bottom: 1rem;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            letter-spacing: -0.03em;
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.5rem;
+            display: inline-block;
+        }
+
+        .subtitle {
+            color: var(--text-muted);
+            font-size: 1rem;
+            max-width: 500px;
+            margin: 0 auto;
+            line-height: 1.5;
+        }
+
+        /* Glass Cards */
+        .glass-panel {
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius);
+            padding: 1.5rem;
+            box-shadow: var(--shadow);
+            transition: transform 0.2s ease, border-color 0.2s ease;
+        }
+
+        .glass-panel:focus-within {
+            border-color: rgba(168, 85, 247, 0.3);
+        }
+
+        /* Labels & Headers */
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            font-weight: 600;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .label::before {
+            content: '';
+            display: block;
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--primary-gradient);
+        }
+
+        /* Textareas */
+        textarea {
+            width: 100%;
+            min-height: 180px;
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 1rem;
+            color: var(--text-main);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.95rem;
+            line-height: 1.6;
+            resize: vertical;
+            transition: all 0.2s ease;
+        }
+
+        textarea:focus {
+            background: rgba(15, 23, 42, 0.8);
+            border-color: #818cf8;
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+        }
+
+        textarea::placeholder {
+            color: rgba(148, 163, 184, 0.5);
+        }
+
+        /* Action Bar */
+        .action-bar {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        /* Buttons */
+        .btn {
+            font-family: 'Inter', sans-serif;
+            font-weight: 600;
+            font-size: 0.95rem;
+            padding: 0.75rem 1.5rem;
+            border-radius: 10px;
+            border: none;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn:active { transform: scale(0.98); }
+
+        .btn-primary {
+            background: var(--primary-gradient);
+            color: white;
+            box-shadow: 0 4px 15px rgba(124, 58, 237, 0.3);
+        }
+
+        .btn-primary:hover {
+            box-shadow: 0 6px 20px rgba(124, 58, 237, 0.4);
+            transform: translateY(-1px);
+        }
+
+        .btn-ghost {
+            background: transparent;
+            color: var(--text-muted);
+            border: 1px solid transparent;
+        }
+
+        .btn-ghost:hover {
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-main);
+        }
+
+        .btn-copy {
+            padding: 0.4rem 0.8rem;
+            font-size: 0.8rem;
+            background: rgba(255,255,255,0.05);
+            color: var(--text-main);
+            border: 1px solid var(--glass-border);
+            border-radius: 8px;
+        }
+        
+        .btn-copy:hover { background: rgba(255,255,255,0.1); }
+        .btn-copy.copied { background: rgba(16, 185, 129, 0.2); color: var(--success); border-color: rgba(16, 185, 129, 0.3); }
+
+        /* Stats & Rules */
+        .stats-pill {
+            margin-left: auto;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            background: rgba(15, 23, 42, 0.5);
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            border: 1px solid var(--glass-border);
+            opacity: 0;
+            transform: translateY(5px);
+            transition: all 0.3s ease;
+        }
+
+        .stats-pill.visible { opacity: 1; transform: translateY(0); }
+        .stats-pill strong { color: #a78bfa; }
+
+        .rules-container {
+            display: none;
+            margin-top: 1rem;
+            animation: slideDown 0.3s ease forwards;
+        }
+
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .rules-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 0.75rem;
+        }
+
+        .rule-chip {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: rgba(15, 23, 42, 0.4);
+            border: 1px solid var(--glass-border);
+            padding: 0.6rem 0.8rem;
+            border-radius: 8px;
+            font-size: 0.85rem;
+        }
+
+        .char-box {
+            font-family: 'JetBrains Mono', monospace;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+        .from { color: var(--danger); background: rgba(239, 68, 68, 0.1); }
+        .to { color: var(--success); background: rgba(16, 185, 129, 0.1); }
+        .arrow { color: var(--text-muted); font-size: 0.8rem; }
+
+        /* Output Area Animation */
+        #output-wrapper {
+            display: none;
+            animation: fadeUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Footer */
+        footer {
+            margin-top: auto;
+            padding-top: 2rem;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            text-align: center;
+        }
+        
+        footer a { color: #818cf8; text-decoration: none; }
+        footer a:hover { text-decoration: underline; }
+
+        /* Mobile Tweaks */
+        @media (max-width: 600px) {
+            h1 { font-size: 1.8rem; }
+            .action-bar { flex-direction: column; align-items: stretch; }
+            .stats-pill { margin-left: 0; text-align: center; }
+            .btn { justify-content: center; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="app-container">
+        <header>
+            <h1>CleanGPT</h1>
+            <p class="subtitle">Nettoyez instantanément la typographie "non standard" générée par les modèles IA.</p>
+        </header>
+
+        <!-- Input Section -->
+        <div class="glass-panel">
+            <div class="panel-header">
+                <span class="label">Texte Source</span>
+            </div>
+            <textarea id="input" placeholder="Collez votre texte ici..." spellcheck="false"></textarea>
+            
+            <div class="action-bar" style="margin-top: 1.25rem;">
+                <button class="btn btn-primary" id="btn-clean" onclick="clean()">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v4"/><path d="m19 5-3 3"/><path d="M22 12h-4"/><path d="m19 19-3-3"/><path d="M12 22v-4"/><path d="m5 19 3-3"/><path d="M2 12h4"/><path d="m5 5 3 3"/></svg>
+                    Nettoyer le texte
+                </button>
+                <button class="btn btn-ghost" onclick="clearAll()">Effacer</button>
+                <button class="btn btn-ghost" onclick="toggleRules()">Voir les règles</button>
+                
+                <div id="stats" class="stats-pill"></div>
+            </div>
+
+            <!-- Rules Section (Hidden by default) -->
+            <div id="rules-card" class="rules-container">
+                <div class="label" style="margin-bottom: 0.5rem; color: var(--text-main);">Remplacements actifs</div>
+                <div class="rules-grid" id="rules-grid"></div>
+            </div>
+        </div>
+
+        <!-- Output Section -->
+        <div id="output-wrapper" class="glass-panel">
+            <div class="panel-header">
+                <span class="label" style="color: #a78bfa;">Résultat Nettoyé</span>
+                <button class="btn-copy" id="btn-copy" onclick="copyOutput()">📋 Copier</button>
+            </div>
+            <textarea id="output" readonly spellcheck="false"></textarea>
+        </div>
+    </div>
+
+    <footer>
+        <p>100% Client-Side • Aucune donnée ne quitte votre navigateur.</p>
+    </footer>
+
+    <script>
+        // --- LOGIQUE IDENTIQUE À LA VERSION PRÉCÉDENTE ---
+
+        const RULES = [
+            { from: '\u201C', to: '"', label: 'guillemet ouvrant' },
+            { from: '\u201D', to: '"', label: 'guillemet fermant' },
+            { from: '\u201E', to: '"', label: 'guillemet bas' },
+            { from: '\u2018', to: "'", label: 'apostrophe courbe' },
+            { from: '\u2019', to: "'", label: 'apostrophe courbe' },
+            { from: '\u201A', to: "'", label: 'guillemet simple bas' },
+            { from: '\u2039', to: "'", label: 'guillemet simple' },
+            { from: '\u203A', to: "'", label: 'guillemet simple' },
+            { from: '\u2013', to: '-', label: 'tiret demi' },
+            { from: '\u2014', to: '-', label: 'tiret cadratin' },
+            { from: '\u00B7', to: '.', label: 'point médian' },
+            { from: '_',      to: ' ', label: 'underscore' },
+        ];
+
+        // Build rules grid
+        const grid = document.getElementById('rules-grid');
+        RULES.forEach(r => {
+            const div = document.createElement('div');
+            div.className = 'rule-chip';
+            div.innerHTML = `
+                <span class="char-box from">${r.from === ' ' ? '␣' : r.from}</span>
+                <span class="arrow">➜</span>
+                <span class="char-box to">${r.to === ' ' ? '␣' : r.to}</span>
+            `;
+            grid.appendChild(div);
+        });
+
+        function clean() {
+            const input = document.getElementById('input').value;
+            if (!input.trim()) return;
+
+            let output = input;
+            let totalReplacements = 0;
+            const details = [];
+
+            RULES.forEach(rule => {
+                const regex = new RegExp(escapeRegex(rule.from), 'g');
+                const matches = output.match(regex);
+                const count = matches ? matches.length : 0;
+                if (count > 0) {
+                    details.push({ label: rule.label, from: rule.from, count });
+                    totalReplacements += count;
+                }
+                output = output.replace(regex, rule.to);
+            });
+
+            document.getElementById('output').value = output;
+            
+            // Show output with animation
+            const outputWrapper = document.getElementById('output-wrapper');
+            outputWrapper.style.display = 'block';
+            
+            // Scroll to output on mobile if needed
+            if(window.innerWidth < 800) {
+                setTimeout(() => outputWrapper.scrollIntoView({behavior: 'smooth'}), 100);
+            }
+
+            const statsEl = document.getElementById('stats');
+            statsEl.classList.remove('visible');
+            
+            setTimeout(() => {
+                if (totalReplacements === 0) {
+                    statsEl.innerHTML = '✨ Texte déjà propre';
+                } else {
+                    statsEl.innerHTML = `⚡ <strong>${totalReplacements}</strong> corrections effectuées`;
+                }
+                statsEl.classList.add('visible');
+            }, 50);
+        }
+
+        function escapeRegex(str) {
+            return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        }
+
+        function copyOutput() {
+            const output = document.getElementById('output');
+            navigator.clipboard.writeText(output.value).then(() => {
+                const btn = document.getElementById('btn-copy');
+                btn.classList.add('copied');
+                btn.innerHTML = '✓ Copié';
+                setTimeout(() => {
+                    btn.classList.remove('copied');
+                    btn.innerHTML = '📋 Copier';
+                }, 2000);
+            });
+        }
+
+        function clearAll() {
+            document.getElementById('input').value = '';
+            document.getElementById('output').value = '';
+            document.getElementById('output-wrapper').style.display = 'none';
+            document.getElementById('stats').classList.remove('visible');
+        }
+
+        function toggleRules() {
+            const card = document.getElementById('rules-card');
+            card.style.display = card.style.display === 'block' ? 'none' : 'block';
+        }
+
+        // Auto-clean on paste
+        document.getElementById('input').addEventListener('paste', () => {
+            setTimeout(clean, 50);
+        });
+
+        // Ctrl+Enter shortcut
+        document.getElementById('input').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) clean();
+        });
+    </script>
+</body>
+</html>
