@@ -53,7 +53,7 @@
             --glass-bg: rgba(255, 255, 255, 0.75);
             --glass-border: rgba(255, 255, 255, 0.6);
             --text-main: #1e293b;
-            --text-muted: #64748b;
+            --text-muted: #475569;
             --input-bg: rgba(255, 255, 255, 0.5);
             --input-focus-bg: rgba(255, 255, 255, 0.9);
             --chip-bg: rgba(255, 255, 255, 0.6);
@@ -287,6 +287,13 @@
         }
 
         .stats-pill.visible { opacity: 1; transform: translateY(0); }
+        .stats-pill.warning { color: var(--warning); border-color: rgba(245, 158, 11, 0.3); background: rgba(245, 158, 11, 0.1); }
+
+        /* Toast */
+        #toast-container { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); z-index: 100; display: flex; flex-direction: column; gap: 10px; pointer-events: none; }
+        .toast { background: var(--glass-bg); backdrop-filter: blur(12px); border: 1px solid var(--glass-border); padding: 10px 20px; border-radius: 50px; box-shadow: var(--shadow); font-size: 0.9rem; color: var(--text-main); opacity: 0; transform: translateY(20px); transition: all 0.3s ease; }
+        .toast.show { opacity: 1; transform: translateY(0); }
+
         .stats-pill strong { color: #a78bfa; }
         [data-theme="light"] .stats-pill strong { color: #7c3aed; }
 
@@ -595,10 +602,10 @@
 
     <div class="app-container">
         <div class="top-controls">
-            <button class="control-btn" onclick="toggleTheme()" id="theme-btn">
+            <button class="control-btn" onclick="toggleTheme()" id="theme-btn" aria-label="Toggle theme">
                 <span id="theme-icon">🌙</span>
             </button>
-            <button class="control-btn" onclick="toggleLang()" id="lang-btn">
+            <button class="control-btn" onclick="toggleLang()" id="lang-btn" aria-label="Toggle language">
                 <span id="lang-text">EN</span>
             </button>
         </div>
@@ -612,7 +619,7 @@
             <div class="panel-header">
                 <span class="label" data-i18n="source_label">Texte Source</span>
             </div>
-            <textarea id="input" data-placeholder="placeholder" placeholder="Collez votre texte ici..." spellcheck="false"></textarea>
+            <textarea id="input" aria-label="Source text" data-placeholder="placeholder" placeholder="Collez votre texte ici..." spellcheck="false"></textarea>
 
             <div class="action-bar" style="margin-top: 1.25rem;">
                 <button class="btn btn-primary" id="btn-clean" onclick="clean()">
@@ -620,7 +627,7 @@
                     <span data-i18n="btn_clean">Nettoyer</span>
                 </button>
                 <button class="btn btn-ghost" onclick="clearAll()" data-i18n="btn_clear">Effacer</button>
-                <button class="btn btn-ghost" onclick="toggleRules()">⚙️ <span data-i18n="btn_rules">Règles</span></button>
+                <button class="btn btn-ghost" onclick="toggleRules()" aria-expanded="false" aria-controls="rules-card">⚙️ <span data-i18n="btn_rules">Règles</span></button>
                 <div id="stats" class="stats-pill"></div>
             </div>
 
@@ -645,11 +652,13 @@
 
                 <div class="highlight-toggle-bar">
                     <label class="toggle">
-                        <input type="checkbox" id="highlight-toggle" onchange="saveHighlightPref()">
+                        <input type="checkbox" id="mojibake-toggle" role="switch" aria-checked="true" onchange="saveMojibakePref()">
                         <span class="slider"></span>
                     </label>
-                    <span data-i18n="highlight_label">Surligner les remplacements dans le résultat</span>
+                    <span data-i18n="mojibake_label">Corriger l'encodage (mojibake UTF-8 → accents)</span>
                 </div>
+
+                
             </div>
         </div>
 
@@ -657,23 +666,23 @@
             <div class="panel-header">
                 <span class="label" style="color: #a78bfa;" data-i18n="result_label">Résultat Nettoyé</span>
                 <div style="display: flex; align-items: center; gap: 0.4rem;">
-                    <button class="btn-small" id="btn-view" onclick="toggleView()" title="Voir les modifications surlignées">👁️ Diff</button>
+                    <button class="btn-small" id="btn-view" onclick="toggleView()" aria-pressed="false" title="Voir les modifications surlignées">👁️ Diff</button>
                     <button class="btn-small" id="btn-copy" onclick="copyOutput()">📋 <span data-i18n="btn_copy">Copier</span></button>
 
                     <!-- Download Dropdown -->
                     <div class="dropdown" id="download-dropdown">
-                        <button class="btn-small" onclick="toggleDownloadMenu()">
+                        <button class="btn-small" onclick="toggleDownloadMenu()" aria-haspopup="true" aria-expanded="false">
                             📥 <span data-i18n="btn_download">Télécharger</span> ▾
                         </button>
-                        <div class="dropdown-content" id="download-menu">
-                            <a onclick="downloadOutput('txt')">Text (.txt)</a>
-                            <a onclick="downloadOutput('md')">Markdown (.md)</a>
-                            <a onclick="downloadOutput('custom')" data-i18n="download_custom">Custom...</a>
+                        <div class="dropdown-content" id="download-menu" role="menu">
+                            <a onclick="downloadOutput('txt')" role="menuitem" tabindex="0">Text (.txt)</a>
+                            <a onclick="downloadOutput('md')" role="menuitem" tabindex="0">Markdown (.md)</a>
+                            <a onclick="downloadOutput('custom')" role="menuitem" tabindex="0" data-i18n="download_custom">Custom...</a>
                         </div>
                     </div>
                 </div>
             </div>
-            <textarea id="output" readonly spellcheck="false"></textarea>
+            <textarea id="output" aria-label="Cleaned text" readonly spellcheck="false"></textarea>
             <div id="output-visual"></div>
         </div>
     </div>
@@ -717,7 +726,8 @@
                 label_ph: 'Label (optionnel)',
                 btn_add: 'Ajouter',
                 unicode_hint: 'Supporte les caractères Unicode. Le label est optionnel.',
-                highlight_label: 'Surligner les remplacements dans le résultat',
+                mojibake_label: 'Corriger l\'encodage (mojibake UTF-8 → accents)',
+                
                 result_label: 'Résultat Nettoyé',
                 btn_copy: 'Copier',
                 btn_download: 'Télécharger',
@@ -725,7 +735,7 @@
                 prompt_ext: 'Entrez l\'extension du fichier (ex: .json, .html) :',
                 copied: '✓ Copié',
                 stats_clean: '✨ Texte déjà propre',
-                stats_corrections: '⚡ <strong>{n}</strong> corrections effectuées',
+                stats_corrections: '⚡ <strong>{n}</strong> corrections effectuées', empty_input: 'Veuillez entrer du texte', max_rules_warning: 'Limite de règles atteinte (50)',
                 // Rule labels
                 'guillemet ouvrant': 'guillemet ouvrant',
                 'guillemet fermant': 'guillemet fermant',
@@ -752,7 +762,8 @@
                 label_ph: 'Label (optional)',
                 btn_add: 'Add',
                 unicode_hint: 'Supports Unicode characters. Label is optional.',
-                highlight_label: 'Highlight replacements in result',
+                mojibake_label: 'Fix encoding (UTF-8 mojibake → accents)',
+                
                 result_label: 'Cleaned Result',
                 btn_copy: 'Copy',
                 btn_download: 'Download',
@@ -760,7 +771,7 @@
                 prompt_ext: 'Enter file extension (e.g., .json, .html):',
                 copied: '✓ Copied',
                 stats_clean: '✨ Text already clean',
-                stats_corrections: '⚡ <strong>{n}</strong> corrections made',
+                stats_corrections: '⚡ <strong>{n}</strong> corrections made', empty_input: 'Please enter text', max_rules_warning: 'Max custom rules reached (50)',
                 // Rule labels
                 'guillemet ouvrant': 'opening double quote',
                 'guillemet fermant': 'closing double quote',
@@ -791,10 +802,137 @@
             { from: '\u2026', to: '...', label: 'points de suspension' },
         ];
 
+        // ---- Mojibake Map (UTF-8 decoded as Latin-1/CP1252) ----
+        const MOJIBAKE_MAP = []; // kept for compatibility, but dynamic fix is used instead
+
+        // ---- Dynamic Mojibake Fixer (TextDecoder-based) ----
+        // Handles ALL UTF-8 → Latin-1/CP1252 corruption automatically
+        // CP1252 maps bytes 0x80-0x9F to specific Unicode chars (unlike Latin-1)
+        const CP1252_MAP = {
+            0x20AC: 0x80, 0x201A: 0x82, 0x0192: 0x83, 0x201E: 0x84, 0x2026: 0x85,
+            0x2020: 0x86, 0x2021: 0x87, 0x02C6: 0x88, 0x2030: 0x89, 0x0160: 0x8A,
+            0x2039: 0x8B, 0x0152: 0x8C, 0x017D: 0x8E, 0x2018: 0x91, 0x2019: 0x92,
+            0x201C: 0x93, 0x201D: 0x94, 0x2022: 0x95, 0x2013: 0x96, 0x2014: 0x97,
+            0x02DC: 0x98, 0x2122: 0x99, 0x0161: 0x9A, 0x203A: 0x9B, 0x0153: 0x9C,
+            0x017E: 0x9E, 0x0178: 0x9F
+        };
+
+        function fixMojibake(text) {
+            // Try to re-encode as Latin-1/CP1252 bytes, then decode as UTF-8
+            try {
+                const bytes = new Uint8Array(text.length);
+                let allInRange = true;
+                for (let i = 0; i < text.length; i++) {
+                    const code = text.charCodeAt(i);
+                    if (code < 0x100) {
+                        bytes[i] = code;
+                    } else if (CP1252_MAP[code] !== undefined) {
+                        bytes[i] = CP1252_MAP[code];
+                    } else {
+                        allInRange = false;
+                        break;
+                    }
+                }
+                if (!allInRange) return null;
+                const decoder = new TextDecoder('utf-8', { fatal: true });
+                return decoder.decode(bytes);
+            } catch (e) {
+                return null;
+            }
+        }
+
+        // Process text chunk by chunk to handle mixed mojibake/clean content
+        function fixMojibakeInText(text) {
+            // Strategy: try progressively smaller windows to find mojibake segments
+            // First, try line by line, then fall back to pattern-based detection
+            let result = '';
+            let totalFixes = 0;
+            const lines = text.split('\n');
+
+            for (let li = 0; li < lines.length; li++) {
+                if (li > 0) result += '\n';
+                const line = lines[li];
+                // Try fixing the whole line first
+                const fixed = fixMojibake(line);
+                if (fixed !== null && fixed !== line) {
+                    result += fixed;
+                    totalFixes++;
+                } else if (fixed !== null) {
+                    result += line; // line is clean
+                } else {
+                    // Line has mixed content — process segments
+                    // Split on sequences that look like mojibake (chars in 0x80-0xFF range or CP1252 specials)
+                    let segResult = '';
+                    let i = 0;
+                    while (i < line.length) {
+                        // Find start of potential mojibake segment (char >= 0x80)
+                        const code = line.charCodeAt(i);
+                        const isMojibakeChar = code >= 0x80 && (code < 0x100 || CP1252_MAP[code] !== undefined);
+
+                        if (isMojibakeChar) {
+                            // Collect consecutive mojibake-range chars
+                            let j = i;
+                            while (j < line.length) {
+                                const c = line.charCodeAt(j);
+                                if (c >= 0x80 && (c < 0x100 || CP1252_MAP[c] !== undefined)) {
+                                    j++;
+                                } else if (c < 0x80) {
+                                    // ASCII char might be part of a UTF-8 sequence continuation
+                                    // Check if next char is also in mojibake range
+                                    if (j + 1 < line.length) {
+                                        const next = line.charCodeAt(j + 1);
+                                        if (next >= 0x80 && (next < 0x100 || CP1252_MAP[next] !== undefined)) {
+                                            j++; // include this ASCII char in the segment
+                                        } else {
+                                            break;
+                                        }
+                                    } else {
+                                        break;
+                                    }
+                                } else {
+                                    break;
+                                }
+                            }
+                            const segment = line.substring(i, j);
+                            const fixedSeg = fixMojibake(segment);
+                            if (fixedSeg !== null && fixedSeg !== segment) {
+                                segResult += fixedSeg;
+                                totalFixes++;
+                            } else {
+                                segResult += segment;
+                            }
+                            i = j;
+                        } else {
+                            segResult += line[i];
+                            i++;
+                        }
+                    }
+                    result += segResult;
+                }
+            }
+            return { text: result, count: totalFixes };
+        }
+
+        
+        function showToast(msg) {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.textContent = msg;
+            container.appendChild(toast);
+            requestAnimationFrame(() => toast.classList.add('show'));
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        const MAX_CUSTOM_RULES = 50;
         // ---- State ----
         let ruleStates = {};
         let customRules = [];
-        let highlightEnabled = true;
+        
+        let mojibakeEnabled = true;
         let isVisualMode = false;
         let currentLang = 'en'; // Default
         let currentTheme = 'dark';
@@ -802,7 +940,8 @@
         // ---- LocalStorage keys ----
         const LS_STATES = 'cleangpt_rule_states';
         const LS_CUSTOM = 'cleangpt_custom_rules';
-        const LS_HIGHLIGHT = 'cleangpt_highlight';
+        
+        const LS_MOJIBAKE = 'cleangpt_mojibake';
         const LS_THEME = 'cleangpt_theme';
         const LS_LANG = 'cleangpt_lang';
 
@@ -817,9 +956,10 @@
                 const c = localStorage.getItem(LS_CUSTOM);
                 if (c) customRules = JSON.parse(c);
             } catch(e) {}
+            
             try {
-                const h = localStorage.getItem(LS_HIGHLIGHT);
-                if (h !== null) highlightEnabled = JSON.parse(h);
+                const m = localStorage.getItem(LS_MOJIBAKE);
+                if (m !== null) mojibakeEnabled = JSON.parse(m);
             } catch(e) {}
             try {
                 const t = localStorage.getItem(LS_THEME);
@@ -843,9 +983,11 @@
 
         function saveStates() { localStorage.setItem(LS_STATES, JSON.stringify(ruleStates)); }
         function saveCustom() { localStorage.setItem(LS_CUSTOM, JSON.stringify(customRules)); }
-        function saveHighlightPref() {
-            highlightEnabled = document.getElementById('highlight-toggle').checked;
-            localStorage.setItem(LS_HIGHLIGHT, JSON.stringify(highlightEnabled));
+        
+
+        function saveMojibakePref() {
+            mojibakeEnabled = document.getElementById('mojibake-toggle').checked;
+            localStorage.setItem(LS_MOJIBAKE, JSON.stringify(mojibakeEnabled));
         }
 
         // ---- Theme & Lang Logic ----
@@ -962,6 +1104,11 @@
             const from = fromEl.value;
             const to = toEl.value;
             const label = labelEl.value.trim() || (from + ' → ' + to);
+            if (customRules.length >= MAX_CUSTOM_RULES) {
+                showToast(I18N[currentLang].max_rules_warning || "Max custom rules reached (50)");
+                return;
+            }
+
 
             if (!from) { fromEl.focus(); return; }
 
@@ -977,12 +1124,23 @@
 
         function clean() {
             const input = document.getElementById('input').value;
-            if (!input.trim()) return;
+            if (!input.trim()) { showToast(I18N[currentLang].empty_input || "Please enter text"); return; }
 
             let output = input;
-            let outputHtml = escapeHtml(input);
             let totalReplacements = 0;
 
+            // Pass 1: Mojibake fix (if enabled) — dynamic TextDecoder approach
+            if (mojibakeEnabled) {
+                const mojiResult = fixMojibakeInText(output);
+                if (mojiResult.count > 0) {
+                    totalReplacements += mojiResult.count;
+                    output = mojiResult.text;
+                }
+            }
+
+            let outputHtml = escapeHtml(output);
+
+            // Pass 2: Character rules
             getAllRules().forEach(rule => {
                 if (!isRuleEnabled(rule)) return;
 
@@ -993,12 +1151,7 @@
                 if (count > 0) {
                     totalReplacements += count;
                     const displayLabel = getTranslatedLabel(rule.label);
-                    if (highlightEnabled) {
-                        outputHtml = outputHtml.replace(regex,
-                            `<span class="highlight" title="${escapeHtml(displayLabel)}">${escapeHtml(rule.to)}</span>`);
-                    } else {
-                        outputHtml = outputHtml.replace(regex, escapeHtml(rule.to));
-                    }
+                    outputHtml = outputHtml.replace(regex, `<span class="highlight" title="${escapeHtml(displayLabel)}">${escapeHtml(rule.to)}</span>`);
                 }
                 output = output.replace(regex, rule.to);
             });
@@ -1009,13 +1162,8 @@
             const outputWrapper = document.getElementById('output-wrapper');
             outputWrapper.style.display = 'block';
 
-            document.getElementById('btn-view').style.display = highlightEnabled ? '' : 'none';
-            if (!highlightEnabled && isVisualMode) {
-                isVisualMode = false;
-                document.getElementById('output').style.display = 'block';
-                document.getElementById('output-visual').style.display = 'none';
-                document.getElementById('btn-view').classList.remove('active');
-            }
+            
+            
 
             if (window.innerWidth < 800) {
                 setTimeout(() => outputWrapper.scrollIntoView({ behavior: 'smooth' }), 100);
@@ -1040,11 +1188,11 @@
             const visual = document.getElementById('output-visual');
 
             if (isVisualMode) {
-                btn.classList.add('active');
+                btn.classList.add('active'); btn.setAttribute('aria-pressed', 'true');
                 textarea.style.display = 'none';
                 visual.style.display = 'block';
             } else {
-                btn.classList.remove('active');
+                btn.classList.remove('active'); btn.setAttribute('aria-pressed', 'false');
                 textarea.style.display = 'block';
                 visual.style.display = 'none';
             }
@@ -1069,7 +1217,7 @@
 
         // ---- Download Logic ----
         function toggleDownloadMenu() {
-            document.getElementById('download-dropdown').classList.toggle('show');
+            const dd = document.getElementById('download-dropdown'); dd.classList.toggle('show'); document.querySelector('[onclick="toggleDownloadMenu()"]').setAttribute('aria-expanded', dd.classList.contains('show'));
         }
 
         // Close dropdown if clicked outside
@@ -1092,12 +1240,17 @@
             let extension = '';
             if (type === 'txt') extension = '.txt';
             else if (type === 'md') extension = '.md';
-            else if (type === 'custom') {
+            else 
+            if (type === 'custom') {
                 let userExt = prompt(I18N[currentLang].prompt_ext, '.txt');
                 if (!userExt) return;
-                if (!userExt.startsWith('.')) userExt = '.' + userExt;
+                if (!userExt.match(/^\.[a-z0-9]+$/i)) {
+                    showToast("Invalid extension");
+                    return;
+                }
                 extension = userExt;
             }
+
 
             const blob = new Blob([content], { type: 'text/plain' });
             const url = window.URL.createObjectURL(blob);
@@ -1121,7 +1274,7 @@
 
         function toggleRules() {
             const card = document.getElementById('rules-card');
-            card.style.display = card.style.display === 'block' ? 'none' : 'block';
+            const isVisible = card.style.display === 'block'; card.style.display = isVisible ? 'none' : 'block'; document.querySelector('[onclick="toggleRules()"]').setAttribute('aria-expanded', !isVisible);
         }
 
         // ---- Init ----
@@ -1129,7 +1282,8 @@
         applyTheme();
         applyLang();
 
-        document.getElementById('highlight-toggle').checked = highlightEnabled;
+        
+        document.getElementById('mojibake-toggle').checked = mojibakeEnabled;
 
         document.getElementById('input').addEventListener('paste', () => { setTimeout(clean, 50); });
         document.getElementById('input').addEventListener('keydown', (e) => {
@@ -1139,5 +1293,6 @@
         document.getElementById('new-to').addEventListener('keydown', (e) => { if (e.key === 'Enter') addCustomRule(); });
     </script>
 <script defer src="https://static.cloudflareinsights.com/beacon.min.js/vcd15cbe7772f49c399c6a5babf22c1241717689176015" integrity="sha512-ZpsOmlRQV6y907TI0dKBHq9Md29nnaEIPlkf84rnaERnq6zvWvPUqr2ft8M1aS28oN72PdrCzSjY4U6VaAw1EQ==" data-cf-beacon='{"version":"2024.11.0","token":"f0f03d0605bf45f1a3b17cf7d5e6861f","server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
+<div id="toast-container"></div><script defer src="https://static.cloudflareinsights.com/beacon.min.js/vcd15cbe7772f49c399c6a5babf22c1241717689176015" integrity="sha512-ZpsOmlRQV6y907TI0dKBHq9Md29nnaEIPlkf84rnaERnq6zvWvPUqr2ft8M1aS28oN72PdrCzSjY4U6VaAw1EQ==" data-cf-beacon='{"version":"2024.11.0","token":"f0f03d0605bf45f1a3b17cf7d5e6861f","server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
 </body>
 </html>
