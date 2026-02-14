@@ -1,43 +1,68 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CleanGPT - Nettoyeur de texte</title>
+    <title>CleanGPT - Text Cleaner</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <style>
         :root {
+            /* Dark Theme (Default) */
             --primary-gradient: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
-            --bg-dark: #0f172a;
+            --bg-body: #0f172a;
+            --bg-gradient-1: rgba(99, 102, 241, 0.15);
+            --bg-gradient-2: rgba(168, 85, 247, 0.15);
             --glass-bg: rgba(30, 41, 59, 0.7);
             --glass-border: rgba(255, 255, 255, 0.08);
             --text-main: #f8fafc;
             --text-muted: #94a3b8;
+            --input-bg: rgba(15, 23, 42, 0.6);
+            --input-focus-bg: rgba(15, 23, 42, 0.8);
+            --chip-bg: rgba(15, 23, 42, 0.4);
             --success: #10b981;
             --danger: #ef4444;
+            --warning: #f59e0b;
             --radius: 16px;
             --shadow: 0 10px 40px -10px rgba(0,0,0,0.5);
+            --toggle-bg: rgba(255,255,255,0.1);
+            --footer-hover: rgba(255,255,255,0.1);
+        }
+
+        [data-theme="light"] {
+            --bg-body: #f0f9ff;
+            --bg-gradient-1: rgba(99, 102, 241, 0.1);
+            --bg-gradient-2: rgba(168, 85, 247, 0.1);
+            --glass-bg: rgba(255, 255, 255, 0.75);
+            --glass-border: rgba(255, 255, 255, 0.6);
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --input-bg: rgba(255, 255, 255, 0.5);
+            --input-focus-bg: rgba(255, 255, 255, 0.9);
+            --chip-bg: rgba(255, 255, 255, 0.6);
+            --shadow: 0 10px 40px -10px rgba(148, 163, 184, 0.5);
+            --toggle-bg: rgba(0,0,0,0.1);
+            --footer-hover: rgba(0,0,0,0.05);
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; outline: none; }
 
         body {
             font-family: 'Inter', sans-serif;
-            background-color: var(--bg-dark);
-            background-image: 
-                radial-gradient(circle at 15% 50%, rgba(99, 102, 241, 0.15) 0%, transparent 25%),
-                radial-gradient(circle at 85% 30%, rgba(168, 85, 247, 0.15) 0%, transparent 25%);
+            background-color: var(--bg-body);
+            background-image:
+                radial-gradient(circle at 15% 50%, var(--bg-gradient-1) 0%, transparent 25%),
+                radial-gradient(circle at 85% 30%, var(--bg-gradient-2) 0%, transparent 25%);
             color: var(--text-main);
             min-height: 100vh;
             display: flex;
             flex-direction: column;
             align-items: center;
             padding: 2rem 1rem;
+            transition: background-color 0.3s ease, color 0.3s ease;
         }
 
-        /* Layout Container */
         .app-container {
             width: 100%;
             max-width: 800px;
@@ -48,11 +73,31 @@
             z-index: 1;
         }
 
-        /* Header */
-        header {
-            text-align: center;
-            margin-bottom: 1rem;
+        /* Top Bar (Theme & Lang) */
+        .top-controls {
+            display: flex;
+            justify-content: flex-end;
+            gap: 0.5rem;
+            margin-bottom: -0.5rem;
         }
+
+        .control-btn {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            color: var(--text-muted);
+            padding: 0.4rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+        .control-btn:hover { color: var(--text-main); border-color: var(--text-muted); }
+        .control-btn.active { color: #818cf8; border-color: #818cf8; background: rgba(99, 102, 241, 0.1); }
+
+        header { text-align: center; margin-bottom: 1rem; }
 
         h1 {
             font-size: 2.5rem;
@@ -73,7 +118,6 @@
             line-height: 1.5;
         }
 
-        /* Glass Cards */
         .glass-panel {
             background: var(--glass-bg);
             backdrop-filter: blur(12px);
@@ -82,14 +126,11 @@
             border-radius: var(--radius);
             padding: 1.5rem;
             box-shadow: var(--shadow);
-            transition: transform 0.2s ease, border-color 0.2s ease;
+            transition: transform 0.2s ease, border-color 0.2s ease, background-color 0.3s ease;
         }
 
-        .glass-panel:focus-within {
-            border-color: rgba(168, 85, 247, 0.3);
-        }
+        .glass-panel:focus-within { border-color: rgba(168, 85, 247, 0.3); }
 
-        /* Labels & Headers */
         .panel-header {
             display: flex;
             justify-content: space-between;
@@ -117,11 +158,10 @@
             background: var(--primary-gradient);
         }
 
-        /* Textareas */
         textarea {
             width: 100%;
             min-height: 180px;
-            background: rgba(15, 23, 42, 0.6);
+            background: var(--input-bg);
             border: 1px solid var(--glass-border);
             border-radius: 12px;
             padding: 1rem;
@@ -134,24 +174,20 @@
         }
 
         textarea:focus {
-            background: rgba(15, 23, 42, 0.8);
+            background: var(--input-focus-bg);
             border-color: #818cf8;
             box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
         }
 
-        textarea::placeholder {
-            color: rgba(148, 163, 184, 0.5);
-        }
+        textarea::placeholder { color: var(--text-muted); opacity: 0.7; }
 
-        /* Action Bar */
         .action-bar {
             display: flex;
-            gap: 1rem;
+            gap: 0.75rem;
             align-items: center;
             flex-wrap: wrap;
         }
 
-        /* Buttons */
         .btn {
             font-family: 'Inter', sans-serif;
             font-weight: 600;
@@ -185,31 +221,45 @@
             background: transparent;
             color: var(--text-muted);
             border: 1px solid transparent;
+            font-family: 'Inter', sans-serif;
+            font-weight: 600;
+            font-size: 0.95rem;
+            padding: 0.75rem 1rem;
+            border-radius: 10px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.2s ease;
         }
 
         .btn-ghost:hover {
-            background: rgba(255, 255, 255, 0.05);
+            background: var(--toggle-bg);
             color: var(--text-main);
         }
 
-        .btn-copy {
+        .btn-small {
             padding: 0.4rem 0.8rem;
             font-size: 0.8rem;
-            background: rgba(255,255,255,0.05);
+            background: var(--toggle-bg);
             color: var(--text-main);
             border: 1px solid var(--glass-border);
             border-radius: 8px;
+            font-family: 'Inter', sans-serif;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
         }
-        
-        .btn-copy:hover { background: rgba(255,255,255,0.1); }
-        .btn-copy.copied { background: rgba(16, 185, 129, 0.2); color: var(--success); border-color: rgba(16, 185, 129, 0.3); }
 
-        /* Stats & Rules */
+        .btn-small:hover { background: rgba(124, 58, 237, 0.1); border-color: rgba(124, 58, 237, 0.3); }
+        .btn-small.active { background: rgba(99, 102, 241, 0.2); color: #818cf8; border-color: rgba(99, 102, 241, 0.3); }
+        .btn-small.copied { background: rgba(16, 185, 129, 0.2); color: var(--success); border-color: rgba(16, 185, 129, 0.3); }
+
         .stats-pill {
             margin-left: auto;
             font-size: 0.85rem;
             color: var(--text-muted);
-            background: rgba(15, 23, 42, 0.5);
+            background: var(--chip-bg);
             padding: 0.5rem 1rem;
             border-radius: 20px;
             border: 1px solid var(--glass-border);
@@ -220,7 +270,9 @@
 
         .stats-pill.visible { opacity: 1; transform: translateY(0); }
         .stats-pill strong { color: #a78bfa; }
+        [data-theme="light"] .stats-pill strong { color: #7c3aed; }
 
+        /* ---- Rules Panel ---- */
         .rules-container {
             display: none;
             margin-top: 1rem;
@@ -232,42 +284,192 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
+        .rules-section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.75rem;
+        }
+
         .rules-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-            gap: 0.75rem;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 0.6rem;
         }
 
         .rule-chip {
             display: flex;
             align-items: center;
-            justify-content: space-between;
-            background: rgba(15, 23, 42, 0.4);
+            gap: 0.6rem;
+            background: var(--chip-bg);
             border: 1px solid var(--glass-border);
-            padding: 0.6rem 0.8rem;
+            padding: 0.5rem 0.7rem;
             border-radius: 8px;
             font-size: 0.85rem;
+            transition: opacity 0.2s ease, border-color 0.2s ease;
         }
+
+        .rule-chip.disabled { opacity: 0.5; filter: grayscale(0.8); }
+        .rule-chip.custom { border-color: rgba(245, 158, 11, 0.3); }
 
         .char-box {
             font-family: 'JetBrains Mono', monospace;
-            width: 24px;
+            min-width: 24px;
             height: 24px;
             display: flex;
             align-items: center;
             justify-content: center;
             border-radius: 4px;
             font-weight: bold;
+            padding: 0 3px;
         }
         .from { color: var(--danger); background: rgba(239, 68, 68, 0.1); }
         .to { color: var(--success); background: rgba(16, 185, 129, 0.1); }
-        .arrow { color: var(--text-muted); font-size: 0.8rem; }
+        .arrow { color: var(--text-muted); font-size: 0.75rem; flex-shrink: 0; }
 
-        /* Output Area Animation */
+        .rule-label {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            flex: 1;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* Toggle switch */
+        .toggle {
+            position: relative;
+            width: 34px;
+            height: 18px;
+            flex-shrink: 0;
+        }
+
+        .toggle input { opacity: 0; width: 0; height: 0; }
+
+        .toggle .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: var(--toggle-bg);
+            border-radius: 18px;
+            transition: 0.2s;
+        }
+
+        .toggle .slider::before {
+            content: '';
+            position: absolute;
+            height: 14px;
+            width: 14px;
+            left: 2px;
+            bottom: 2px;
+            background: var(--text-muted);
+            border-radius: 50%;
+            transition: 0.2s;
+        }
+
+        .toggle input:checked + .slider { background: rgba(99, 102, 241, 0.5); }
+        .toggle input:checked + .slider::before { transform: translateX(16px); background: #a78bfa; }
+        [data-theme="light"] .toggle input:checked + .slider::before { background: #7c3aed; }
+
+        .btn-delete-rule {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-size: 0.9rem;
+            padding: 0 2px;
+            transition: color 0.2s;
+            flex-shrink: 0;
+        }
+        .btn-delete-rule:hover { color: var(--danger); }
+
+        /* Add custom rule form */
+        .add-rule-form {
+            display: none;
+            margin-top: 0.75rem;
+            padding: 0.75rem;
+            background: var(--chip-bg);
+            border: 1px dashed rgba(245, 158, 11, 0.3);
+            border-radius: 10px;
+            animation: slideDown 0.2s ease forwards;
+        }
+
+        .add-rule-form .form-row {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .add-rule-form input[type="text"] {
+            background: var(--input-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 6px;
+            padding: 0.4rem 0.6rem;
+            color: var(--text-main);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+            width: 120px;
+            transition: border-color 0.2s;
+        }
+
+        .add-rule-form input[type="text"]:focus { border-color: #818cf8; }
+
+        .add-rule-form input[type="text"].label-input {
+            font-family: 'Inter', sans-serif;
+            width: 160px;
+        }
+
+        .form-hint {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            margin-top: 0.4rem;
+        }
+
+        /* Highlight toggle */
+        .highlight-toggle-bar {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-top: 0.75rem;
+            padding-top: 0.75rem;
+            border-top: 1px solid var(--glass-border);
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        /* ---- Output ---- */
         #output-wrapper {
             display: none;
             animation: fadeUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
+
+        #output-visual {
+            width: 100%;
+            min-height: 180px;
+            background: var(--input-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 1rem;
+            color: var(--text-main);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.95rem;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            overflow-y: auto;
+            display: none;
+        }
+
+        .highlight {
+            background-color: rgba(16, 185, 129, 0.25);
+            color: #4ade80;
+            border-radius: 4px;
+            padding: 0 2px;
+            font-weight: bold;
+            cursor: help;
+            border-bottom: 1px dashed rgba(16, 185, 129, 0.5);
+        }
+        [data-theme="light"] .highlight { color: #15803d; background-color: rgba(16, 185, 129, 0.3); }
 
         @keyframes fadeUp {
             from { opacity: 0; transform: translateY(20px); }
@@ -278,74 +480,227 @@
         footer {
             margin-top: auto;
             padding-top: 2rem;
-            font-size: 0.8rem;
-            color: var(--text-muted);
-            text-align: center;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem;
         }
-        
-        footer a { color: #818cf8; text-decoration: none; }
-        footer a:hover { text-decoration: underline; }
 
-        /* Mobile Tweaks */
+        .footer-links {
+            display: flex;
+            gap: 1.5rem;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .footer-link {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 0.85rem;
+            padding: 0.5rem 0.8rem;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+        }
+
+        .footer-link:hover {
+            background: var(--footer-hover);
+            color: var(--text-main);
+            transform: translateY(-2px);
+        }
+
+        .footer-link svg { width: 18px; height: 18px; }
+
+        .copyright {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            opacity: 0.7;
+        }
+
         @media (max-width: 600px) {
             h1 { font-size: 1.8rem; }
             .action-bar { flex-direction: column; align-items: stretch; }
             .stats-pill { margin-left: 0; text-align: center; }
             .btn { justify-content: center; }
+            .rules-grid { grid-template-columns: 1fr; }
+            .add-rule-form .form-row { flex-direction: column; align-items: stretch; }
+            .add-rule-form input[type="text"] { width: 100%; }
+            .add-rule-form input[type="text"].label-input { width: 100%; }
+            .footer-links { gap: 0.5rem; }
         }
     </style>
 </head>
 <body>
 
     <div class="app-container">
+        <div class="top-controls">
+            <button class="control-btn" onclick="toggleTheme()" id="theme-btn">
+                <span id="theme-icon">🌙</span>
+            </button>
+            <button class="control-btn" onclick="toggleLang()" id="lang-btn">
+                <span id="lang-text">EN</span>
+            </button>
+        </div>
+
         <header>
             <h1>CleanGPT</h1>
-            <p class="subtitle">Nettoyez instantanément la typographie "non standard" générée par les modèles IA.</p>
+            <p class="subtitle" data-i18n="subtitle">Nettoyez instantanément la typographie "non standard" générée par les modèles IA.</p>
         </header>
 
-        <!-- Input Section -->
         <div class="glass-panel">
             <div class="panel-header">
-                <span class="label">Texte Source</span>
+                <span class="label" data-i18n="source_label">Texte Source</span>
             </div>
-            <textarea id="input" placeholder="Collez votre texte ici..." spellcheck="false"></textarea>
-            
+            <textarea id="input" data-placeholder="placeholder" placeholder="Collez votre texte ici..." spellcheck="false"></textarea>
+
             <div class="action-bar" style="margin-top: 1.25rem;">
                 <button class="btn btn-primary" id="btn-clean" onclick="clean()">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v4"/><path d="m19 5-3 3"/><path d="M22 12h-4"/><path d="m19 19-3-3"/><path d="M12 22v-4"/><path d="m5 19 3-3"/><path d="M2 12h4"/><path d="m5 5 3 3"/></svg>
-                    Nettoyer le texte
+                    <span data-i18n="btn_clean">Nettoyer</span>
                 </button>
-                <button class="btn btn-ghost" onclick="clearAll()">Effacer</button>
-                <button class="btn btn-ghost" onclick="toggleRules()">Voir les règles</button>
-                
+                <button class="btn btn-ghost" onclick="clearAll()" data-i18n="btn_clear">Effacer</button>
+                <button class="btn btn-ghost" onclick="toggleRules()">⚙️ <span data-i18n="btn_rules">Règles</span></button>
                 <div id="stats" class="stats-pill"></div>
             </div>
 
-            <!-- Rules Section (Hidden by default) -->
             <div id="rules-card" class="rules-container">
-                <div class="label" style="margin-bottom: 0.5rem; color: var(--text-main);">Remplacements actifs</div>
+                <div class="rules-section-header">
+                    <div class="label" style="color: var(--text-main);" data-i18n="active_replacements">Remplacements actifs</div>
+                    <button class="btn-small" onclick="toggleAddForm()" data-i18n="btn_add_custom">＋ Règle custom</button>
+                </div>
+
+                <div id="add-rule-form" class="add-rule-form">
+                    <div class="form-row">
+                        <input type="text" id="new-from" data-placeholder="search_ph" placeholder="Chercher…">
+                        <span class="arrow" style="font-size:1rem;">➜</span>
+                        <input type="text" id="new-to" data-placeholder="replace_ph" placeholder="Remplacer…">
+                        <input type="text" id="new-label" class="label-input" data-placeholder="label_ph" placeholder="Label (optionnel)">
+                        <button class="btn-small" onclick="addCustomRule()" data-i18n="btn_add">Ajouter</button>
+                    </div>
+                    <div class="form-hint" data-i18n="unicode_hint">Supporte les caractères Unicode. Le label est optionnel.</div>
+                </div>
+
                 <div class="rules-grid" id="rules-grid"></div>
+
+                <div class="highlight-toggle-bar">
+                    <label class="toggle">
+                        <input type="checkbox" id="highlight-toggle" onchange="saveHighlightPref()">
+                        <span class="slider"></span>
+                    </label>
+                    <span data-i18n="highlight_label">Surligner les remplacements dans le résultat</span>
+                </div>
             </div>
         </div>
 
-        <!-- Output Section -->
         <div id="output-wrapper" class="glass-panel">
             <div class="panel-header">
-                <span class="label" style="color: #a78bfa;">Résultat Nettoyé</span>
-                <button class="btn-copy" id="btn-copy" onclick="copyOutput()">📋 Copier</button>
+                <span class="label" style="color: #a78bfa;" data-i18n="result_label">Résultat Nettoyé</span>
+                <div style="display: flex; align-items: center; gap: 0.4rem;">
+                    <button class="btn-small" id="btn-view" onclick="toggleView()" title="Voir les modifications surlignées">👁️ Diff</button>
+                    <button class="btn-small" id="btn-copy" onclick="copyOutput()">📋 <span data-i18n="btn_copy">Copier</span></button>
+                </div>
             </div>
             <textarea id="output" readonly spellcheck="false"></textarea>
+            <div id="output-visual"></div>
         </div>
     </div>
 
     <footer>
-        <p>100% Client-Side • Aucune donnée ne quitte votre navigateur.</p>
+        <div class="footer-links">
+            <a href="https://www.linkedin.com/in/fmatsos/" target="_blank" class="footer-link">
+                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></svg>
+                <span>LinkedIn</span>
+            </a>
+            <a href="https://github.com/fmatsos" target="_blank" class="footer-link">
+                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+                <span>GitHub</span>
+            </a>
+            <a href="https://akawaka.fr" target="_blank" class="footer-link">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+                <span>Akawaka</span>
+            </a>
+            <a href="#" onclick="contactMe(event)" class="footer-link">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                <span>Contact</span>
+            </a>
+        </div>
+        <p class="copyright">100% Client-Side • No data leaves your browser.</p>
     </footer>
 
     <script>
-        // --- LOGIQUE IDENTIQUE À LA VERSION PRÉCÉDENTE ---
+        // ---- Translations ----
+        const I18N = {
+            fr: {
+                subtitle: 'Nettoyez instantanément la typographie "non standard" générée par les modèles IA.',
+                source_label: 'Texte Source',
+                placeholder: 'Collez votre texte ici...',
+                btn_clean: 'Nettoyer',
+                btn_clear: 'Effacer',
+                btn_rules: 'Règles',
+                active_replacements: 'Remplacements actifs',
+                btn_add_custom: '＋ Règle custom',
+                search_ph: 'Chercher…',
+                replace_ph: 'Remplacer…',
+                label_ph: 'Label (optionnel)',
+                btn_add: 'Ajouter',
+                unicode_hint: 'Supporte les caractères Unicode. Le label est optionnel.',
+                highlight_label: 'Surligner les remplacements dans le résultat',
+                result_label: 'Résultat Nettoyé',
+                btn_copy: 'Copier',
+                copied: '✓ Copié',
+                stats_clean: '✨ Texte déjà propre',
+                stats_corrections: '⚡ <strong>{n}</strong> corrections effectuées',
+                // Rule labels
+                'guillemet ouvrant': 'guillemet ouvrant',
+                'guillemet fermant': 'guillemet fermant',
+                'guillemet bas': 'guillemet bas',
+                'apostrophe courbe': 'apostrophe courbe',
+                'guillemet simple bas': 'guillemet simple bas',
+                'guillemet simple': 'guillemet simple',
+                'tiret demi': 'tiret demi',
+                'tiret cadratin': 'tiret cadratin',
+                'point médian': 'point médian',
+                'points de suspension': 'points de suspension'
+            },
+            en: {
+                subtitle: 'Instantly clean "non-standard" typography generated by AI models.',
+                source_label: 'Source Text',
+                placeholder: 'Paste your text here...',
+                btn_clean: 'Clean',
+                btn_clear: 'Clear',
+                btn_rules: 'Rules',
+                active_replacements: 'Active Replacements',
+                btn_add_custom: '＋ Custom Rule',
+                search_ph: 'Find…',
+                replace_ph: 'Replace…',
+                label_ph: 'Label (optional)',
+                btn_add: 'Add',
+                unicode_hint: 'Supports Unicode characters. Label is optional.',
+                highlight_label: 'Highlight replacements in result',
+                result_label: 'Cleaned Result',
+                btn_copy: 'Copy',
+                copied: '✓ Copied',
+                stats_clean: '✨ Text already clean',
+                stats_corrections: '⚡ <strong>{n}</strong> corrections made',
+                // Rule labels
+                'guillemet ouvrant': 'opening double quote',
+                'guillemet fermant': 'closing double quote',
+                'guillemet bas': 'low double quote',
+                'apostrophe courbe': 'curly apostrophe',
+                'guillemet simple bas': 'low single quote',
+                'guillemet simple': 'single quote',
+                'tiret demi': 'en dash',
+                'tiret cadratin': 'em dash',
+                'point médian': 'middle dot',
+                'points de suspension': 'ellipsis'
+            }
+        };
 
-        const RULES = [
+        // ---- Default rules ----
+        const DEFAULT_RULES = [
             { from: '\u201C', to: '"', label: 'guillemet ouvrant' },
             { from: '\u201D', to: '"', label: 'guillemet fermant' },
             { from: '\u201E', to: '"', label: 'guillemet bas' },
@@ -357,78 +712,281 @@
             { from: '\u2013', to: '-', label: 'tiret demi' },
             { from: '\u2014', to: '-', label: 'tiret cadratin' },
             { from: '\u00B7', to: '.', label: 'point médian' },
-            { from: '_',      to: ' ', label: 'underscore' },
+            { from: '\u2026', to: '...', label: 'points de suspension' },
         ];
 
-        // Build rules grid
-        const grid = document.getElementById('rules-grid');
-        RULES.forEach(r => {
-            const div = document.createElement('div');
-            div.className = 'rule-chip';
-            div.innerHTML = `
-                <span class="char-box from">${r.from === ' ' ? '␣' : r.from}</span>
-                <span class="arrow">➜</span>
-                <span class="char-box to">${r.to === ' ' ? '␣' : r.to}</span>
-            `;
-            grid.appendChild(div);
-        });
+        // ---- State ----
+        let ruleStates = {};
+        let customRules = [];
+        let highlightEnabled = true;
+        let isVisualMode = false;
+        let currentLang = 'en'; // Default
+        let currentTheme = 'dark';
+
+        // ---- LocalStorage keys ----
+        const LS_STATES = 'cleangpt_rule_states';
+        const LS_CUSTOM = 'cleangpt_custom_rules';
+        const LS_HIGHLIGHT = 'cleangpt_highlight';
+        const LS_THEME = 'cleangpt_theme';
+        const LS_LANG = 'cleangpt_lang';
+
+        function ruleKey(r) { return r.from + '→' + r.to + '|' + r.label; }
+
+        function loadPrefs() {
+            try {
+                const s = localStorage.getItem(LS_STATES);
+                if (s) ruleStates = JSON.parse(s);
+            } catch(e) {}
+            try {
+                const c = localStorage.getItem(LS_CUSTOM);
+                if (c) customRules = JSON.parse(c);
+            } catch(e) {}
+            try {
+                const h = localStorage.getItem(LS_HIGHLIGHT);
+                if (h !== null) highlightEnabled = JSON.parse(h);
+            } catch(e) {}
+            try {
+                const t = localStorage.getItem(LS_THEME);
+                if (t) currentTheme = t;
+            } catch(e) {}
+
+            // Language logic: LS > Browser > Default(EN)
+            try {
+                const l = localStorage.getItem(LS_LANG);
+                if (l) {
+                    currentLang = l;
+                } else {
+                    // Auto-detect
+                    const navLang = navigator.language || navigator.userLanguage;
+                    if (navLang && navLang.toLowerCase().startsWith('fr')) {
+                        currentLang = 'fr';
+                    }
+                }
+            } catch(e) {}
+        }
+
+        function saveStates() { localStorage.setItem(LS_STATES, JSON.stringify(ruleStates)); }
+        function saveCustom() { localStorage.setItem(LS_CUSTOM, JSON.stringify(customRules)); }
+        function saveHighlightPref() {
+            highlightEnabled = document.getElementById('highlight-toggle').checked;
+            localStorage.setItem(LS_HIGHLIGHT, JSON.stringify(highlightEnabled));
+        }
+
+        // ---- Theme & Lang Logic ----
+        function applyTheme() {
+            document.documentElement.setAttribute('data-theme', currentTheme);
+            document.getElementById('theme-icon').textContent = currentTheme === 'dark' ? '🌙' : '☀️';
+            localStorage.setItem(LS_THEME, currentTheme);
+        }
+
+        function toggleTheme() {
+            currentTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            applyTheme();
+        }
+
+        function applyLang() {
+            document.documentElement.lang = currentLang;
+            document.getElementById('lang-text').textContent = currentLang.toUpperCase();
+            localStorage.setItem(LS_LANG, currentLang);
+
+            // Update static texts
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (I18N[currentLang][key]) el.innerHTML = I18N[currentLang][key];
+            });
+
+            // Update placeholders
+            document.querySelectorAll('[data-placeholder]').forEach(el => {
+                const key = el.getAttribute('data-placeholder');
+                if (I18N[currentLang][key]) el.placeholder = I18N[currentLang][key];
+            });
+
+            // Re-render rules to update labels
+            renderRules();
+        }
+
+        function toggleLang() {
+            currentLang = currentLang === 'en' ? 'fr' : 'en';
+            applyLang();
+        }
+
+        function getTranslatedLabel(label) {
+            // If label exists in dictionary, translate it, otherwise return as is
+            return I18N[currentLang][label] || label;
+        }
+
+        // ---- Contact Obfuscation ----
+        function contactMe(e) {
+            e.preventDefault();
+            const user = 'hello';
+            const domain = 'franck.matsos.fr';
+            window.location.href = 'mailto:' + user + '@' + domain;
+        }
+
+        // ---- Core Logic ----
+        function isRuleEnabled(r) {
+            const k = ruleKey(r);
+            return ruleStates[k] !== undefined ? ruleStates[k] : true;
+        }
+
+        function getAllRules() { return [...DEFAULT_RULES, ...customRules]; }
+
+        function renderRules() {
+            const grid = document.getElementById('rules-grid');
+            grid.innerHTML = '';
+            getAllRules().forEach((r, idx) => {
+                const enabled = isRuleEnabled(r);
+                const isCustom = idx >= DEFAULT_RULES.length;
+                const displayLabel = getTranslatedLabel(r.label);
+
+                const div = document.createElement('div');
+                div.className = 'rule-chip' + (enabled ? '' : ' disabled') + (isCustom ? ' custom' : '');
+                div.innerHTML = `
+                    <label class="toggle">
+                        <input type="checkbox" ${enabled ? 'checked' : ''} data-key="${ruleKey(r)}">
+                        <span class="slider"></span>
+                    </label>
+                    <span class="char-box from">${escapeHtml(r.from)}</span>
+                    <span class="arrow">➜</span>
+                    <span class="char-box to">${escapeHtml(r.to)}</span>
+                    <span class="rule-label" title="${escapeHtml(displayLabel)}">${escapeHtml(displayLabel)}</span>
+                    ${isCustom ? `<button class="btn-delete-rule" data-cidx="${idx - DEFAULT_RULES.length}" title="Supprimer">✕</button>` : ''}
+                `;
+                grid.appendChild(div);
+
+                const cb = div.querySelector('input[type="checkbox"]');
+                cb.addEventListener('change', () => {
+                    ruleStates[ruleKey(r)] = cb.checked;
+                    div.classList.toggle('disabled', !cb.checked);
+                    saveStates();
+                });
+
+                if (isCustom) {
+                    div.querySelector('.btn-delete-rule').addEventListener('click', () => {
+                        const ci = idx - DEFAULT_RULES.length;
+                        delete ruleStates[ruleKey(customRules[ci])];
+                        customRules.splice(ci, 1);
+                        saveCustom();
+                        saveStates();
+                        renderRules();
+                    });
+                }
+            });
+        }
+
+        function toggleAddForm() {
+            const form = document.getElementById('add-rule-form');
+            form.style.display = form.style.display === 'block' ? 'none' : 'block';
+        }
+
+        function addCustomRule() {
+            const fromEl = document.getElementById('new-from');
+            const toEl = document.getElementById('new-to');
+            const labelEl = document.getElementById('new-label');
+            const from = fromEl.value;
+            const to = toEl.value;
+            const label = labelEl.value.trim() || (from + ' → ' + to);
+
+            if (!from) { fromEl.focus(); return; }
+
+            customRules.push({ from, to, label });
+            saveCustom();
+            renderRules();
+
+            fromEl.value = '';
+            toEl.value = '';
+            labelEl.value = '';
+            fromEl.focus();
+        }
 
         function clean() {
             const input = document.getElementById('input').value;
             if (!input.trim()) return;
 
             let output = input;
+            let outputHtml = escapeHtml(input);
             let totalReplacements = 0;
-            const details = [];
 
-            RULES.forEach(rule => {
+            getAllRules().forEach(rule => {
+                if (!isRuleEnabled(rule)) return;
+
                 const regex = new RegExp(escapeRegex(rule.from), 'g');
                 const matches = output.match(regex);
                 const count = matches ? matches.length : 0;
+
                 if (count > 0) {
-                    details.push({ label: rule.label, from: rule.from, count });
                     totalReplacements += count;
+                    const displayLabel = getTranslatedLabel(rule.label);
+                    if (highlightEnabled) {
+                        outputHtml = outputHtml.replace(regex,
+                            `<span class="highlight" title="${escapeHtml(displayLabel)}">${escapeHtml(rule.to)}</span>`);
+                    } else {
+                        outputHtml = outputHtml.replace(regex, escapeHtml(rule.to));
+                    }
                 }
                 output = output.replace(regex, rule.to);
             });
 
             document.getElementById('output').value = output;
-            
-            // Show output with animation
+            document.getElementById('output-visual').innerHTML = outputHtml;
+
             const outputWrapper = document.getElementById('output-wrapper');
             outputWrapper.style.display = 'block';
-            
-            // Scroll to output on mobile if needed
-            if(window.innerWidth < 800) {
-                setTimeout(() => outputWrapper.scrollIntoView({behavior: 'smooth'}), 100);
+
+            document.getElementById('btn-view').style.display = highlightEnabled ? '' : 'none';
+            if (!highlightEnabled && isVisualMode) {
+                isVisualMode = false;
+                document.getElementById('output').style.display = 'block';
+                document.getElementById('output-visual').style.display = 'none';
+                document.getElementById('btn-view').classList.remove('active');
+            }
+
+            if (window.innerWidth < 800) {
+                setTimeout(() => outputWrapper.scrollIntoView({ behavior: 'smooth' }), 100);
             }
 
             const statsEl = document.getElementById('stats');
             statsEl.classList.remove('visible');
-            
             setTimeout(() => {
                 if (totalReplacements === 0) {
-                    statsEl.innerHTML = '✨ Texte déjà propre';
+                    statsEl.innerHTML = I18N[currentLang].stats_clean;
                 } else {
-                    statsEl.innerHTML = `⚡ <strong>${totalReplacements}</strong> corrections effectuées`;
+                    statsEl.innerHTML = I18N[currentLang].stats_corrections.replace('{n}', totalReplacements);
                 }
                 statsEl.classList.add('visible');
             }, 50);
         }
 
-        function escapeRegex(str) {
-            return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        function toggleView() {
+            isVisualMode = !isVisualMode;
+            const btn = document.getElementById('btn-view');
+            const textarea = document.getElementById('output');
+            const visual = document.getElementById('output-visual');
+
+            if (isVisualMode) {
+                btn.classList.add('active');
+                textarea.style.display = 'none';
+                visual.style.display = 'block';
+            } else {
+                btn.classList.remove('active');
+                textarea.style.display = 'block';
+                visual.style.display = 'none';
+            }
         }
+
+        function escapeRegex(str) { return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
+        function escapeHtml(str) { return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
 
         function copyOutput() {
             const output = document.getElementById('output');
             navigator.clipboard.writeText(output.value).then(() => {
                 const btn = document.getElementById('btn-copy');
+                const originalText = btn.innerHTML;
                 btn.classList.add('copied');
-                btn.innerHTML = '✓ Copié';
+                btn.innerHTML = I18N[currentLang].copied;
                 setTimeout(() => {
                     btn.classList.remove('copied');
-                    btn.innerHTML = '📋 Copier';
+                    btn.innerHTML = originalText;
                 }, 2000);
             });
         }
@@ -436,8 +994,10 @@
         function clearAll() {
             document.getElementById('input').value = '';
             document.getElementById('output').value = '';
+            document.getElementById('output-visual').innerHTML = '';
             document.getElementById('output-wrapper').style.display = 'none';
             document.getElementById('stats').classList.remove('visible');
+            if (isVisualMode) toggleView();
         }
 
         function toggleRules() {
@@ -445,15 +1005,20 @@
             card.style.display = card.style.display === 'block' ? 'none' : 'block';
         }
 
-        // Auto-clean on paste
-        document.getElementById('input').addEventListener('paste', () => {
-            setTimeout(clean, 50);
-        });
+        // ---- Init ----
+        loadPrefs();
+        applyTheme();
+        applyLang();
 
-        // Ctrl+Enter shortcut
+        document.getElementById('highlight-toggle').checked = highlightEnabled;
+
+        document.getElementById('input').addEventListener('paste', () => { setTimeout(clean, 50); });
         document.getElementById('input').addEventListener('keydown', (e) => {
             if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) clean();
         });
+        document.getElementById('new-label').addEventListener('keydown', (e) => { if (e.key === 'Enter') addCustomRule(); });
+        document.getElementById('new-to').addEventListener('keydown', (e) => { if (e.key === 'Enter') addCustomRule(); });
     </script>
+<script defer src="https://static.cloudflareinsights.com/beacon.min.js/vcd15cbe7772f49c399c6a5babf22c1241717689176015" integrity="sha512-ZpsOmlRQV6y907TI0dKBHq9Md29nnaEIPlkf84rnaERnq6zvWvPUqr2ft8M1aS28oN72PdrCzSjY4U6VaAw1EQ==" data-cf-beacon='{"version":"2024.11.0","token":"f0f03d0605bf45f1a3b17cf7d5e6861f","server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
 </body>
 </html>
