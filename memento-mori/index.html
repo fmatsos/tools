@@ -12,7 +12,7 @@
             --dot-future: #d1d1d1;
             --dot-current: #8b0000;
             --accent: #a89f91;
-            --transition-speed: 1.2s;
+            --transition-speed: 0.6s;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
@@ -21,12 +21,13 @@
             background-color: var(--bg-color);
             color: var(--text-color);
             font-family: 'Georgia', 'Times New Roman', serif;
-            height: 100vh;
+            min-height: 100vh;
             display: flex;
             flex-direction: column;
-            overflow: hidden;
-            transition: background-color 1s ease;
+            overflow-y: auto;
+            overflow-x: hidden;
             position: relative;
+            touch-action: pan-y; /* Allow vertical scroll but handle pinch manually */
         }
 
         /* --- ZEN ANIMATED BACKGROUND --- */
@@ -34,129 +35,123 @@
             position: fixed;
             top: 0; left: 0;
             width: 100%; height: 100%;
-            z-index: 0;
+            z-index: -1;
             overflow: hidden;
             pointer-events: none;
         }
         .zen-orb {
             position: absolute;
             border-radius: 50%;
-            filter: blur(80px);
-            opacity: 0.18;
+            filter: blur(60px);
+            opacity: 0.5;
             will-change: transform;
         }
         .zen-orb:nth-child(1) {
-            width: 350px; height: 350px;
-            background: #c4b8a8;
-            top: -80px; left: -60px;
+            width: 400px; height: 400px;
+            background: #dcd0c0;
+            top: -100px; left: -100px;
             animation: orbDrift1 25s infinite ease-in-out alternate;
         }
         .zen-orb:nth-child(2) {
-            width: 280px; height: 280px;
-            background: #a89f91;
-            bottom: -50px; right: -40px;
+            width: 300px; height: 300px;
+            background: #b8b0a4;
+            bottom: -50px; right: -50px;
             animation: orbDrift2 30s infinite ease-in-out alternate;
         }
         .zen-orb:nth-child(3) {
-            width: 200px; height: 200px;
-            background: #8b7d6b;
+            width: 250px; height: 250px;
+            background: #a89f91;
             top: 40%; left: 50%;
+            opacity: 0.3;
             animation: orbDrift3 35s infinite ease-in-out alternate;
         }
         @keyframes orbDrift1 {
             0%   { transform: translate(0, 0) scale(1); }
-            33%  { transform: translate(120px, 80px) scale(1.1); }
-            66%  { transform: translate(60px, 200px) scale(0.95); }
-            100% { transform: translate(180px, 100px) scale(1.05); }
+            100% { transform: translate(100px, 50px) scale(1.1); }
         }
         @keyframes orbDrift2 {
             0%   { transform: translate(0, 0) scale(1); }
-            33%  { transform: translate(-100px, -60px) scale(1.08); }
-            66%  { transform: translate(-160px, -120px) scale(0.92); }
-            100% { transform: translate(-80px, -180px) scale(1.04); }
+            100% { transform: translate(-80px, -80px) scale(1.05); }
         }
         @keyframes orbDrift3 {
             0%   { transform: translate(0, 0) scale(1); }
-            25%  { transform: translate(-80px, 60px) scale(1.15); }
-            50%  { transform: translate(40px, -40px) scale(0.9); }
-            75%  { transform: translate(100px, 80px) scale(1.1); }
-            100% { transform: translate(-40px, -80px) scale(1); }
+            100% { transform: translate(-40px, 40px) scale(0.9); }
         }
 
         /* --- TYPOGRAPHY & LAYOUT --- */
         header {
-            padding: 15px;
+            padding: 20px 15px 10px;
             text-align: center;
-            z-index: 10;
-            opacity: 0.8;
-            cursor: pointer;
-            flex-shrink: 0;
+            z-index: 20; /* Higher z-index for interaction */
+            position: relative;
         }
-        h1 { font-size: 1.1rem; letter-spacing: 2px; text-transform: uppercase; font-weight: normal; }
-        h2 { font-size: 0.85rem; color: var(--accent); margin-top: 5px; font-weight: normal; }
+        h1 { font-size: 1.2rem; letter-spacing: 2px; text-transform: uppercase; font-weight: normal; }
+        h2 { font-size: 0.9rem; color: var(--accent); margin-top: 5px; font-weight: normal; }
 
-        /* --- BREADCRUMB --- */
+        /* --- NAVIGATION --- */
         #breadcrumb {
             text-align: center;
-            font-size: 0.75rem;
+            font-size: 0.8rem;
             color: var(--accent);
-            padding: 0 15px 8px;
+            padding: 0 15px 15px;
             z-index: 10;
-            cursor: pointer;
-            letter-spacing: 1px;
+            letter-spacing: 0.5px;
+            margin-top: 10px;
         }
-        #breadcrumb span {
-            cursor: pointer;
-            transition: color 0.3s;
-        }
-        #breadcrumb span:hover {
-            color: var(--dot-current);
-        }
-        #breadcrumb .sep {
-            cursor: default;
-            opacity: 0.5;
-        }
+        #breadcrumb span { cursor: pointer; transition: color 0.3s; border-bottom: 1px solid transparent; }
+        #breadcrumb span:hover { color: var(--dot-current); border-bottom-color: var(--dot-current); }
+        #breadcrumb .sep { cursor: default; opacity: 0.5; border: none; }
 
         main {
             flex: 1;
             display: flex;
             justify-content: center;
-            align-items: center;
+            align-items: flex-start;
+            padding-top: 20px;
+            padding-bottom: 40px;
             position: relative;
-            perspective: 1000px;
-            overflow: hidden;
-            z-index: 5;
+            z-index: 1;
         }
 
         footer {
-            padding: 10px 15px;
+            padding: 20px 15px;
             text-align: center;
             font-size: 0.75rem;
             color: var(--accent);
             z-index: 10;
-            flex-shrink: 0;
-            min-height: 50px;
+            background: linear-gradient(to top, var(--bg-color) 80%, transparent);
         }
 
         /* --- GRID SYSTEM --- */
         #grid-container {
             display: grid;
-            gap: 8px;
+            gap: 10px;
             padding: 10px;
-            width: 95vw;
+            width: 90vw;
             max-width: 600px;
-            max-height: 80vh;
-            transition: transform var(--transition-speed) cubic-bezier(0.25, 1, 0.5, 1), 
-                    opacity var(--transition-speed) ease;
-            transform-origin: center center;
-            margin: auto;
-            will-change: transform, opacity;
+            transition: opacity var(--transition-speed) ease, transform var(--transition-speed) ease;
+            margin: 0 auto;
         }
 
-        .grid-life { grid-template-columns: repeat(auto-fit, minmax(14px, 1fr)); gap: 8px; }
-        .grid-year { grid-template-columns: repeat(4, 1fr); width: 80vw; max-width: 300px; gap: 12px; }
-        .grid-month { grid-template-columns: repeat(7, 1fr); width: 85vw; max-width: 350px; gap: 10px; }
-        .grid-day { grid-template-columns: repeat(6, 1fr); width: 80vw; max-width: 300px; gap: 10px; }
+        .grid-life { 
+            grid-template-columns: repeat(auto-fit, minmax(12px, 1fr)); 
+            gap: 8px; 
+        }
+        .grid-year { 
+            grid-template-columns: repeat(4, 1fr); 
+            max-width: 280px; 
+            gap: 15px;
+        }
+        .grid-month { 
+            grid-template-columns: repeat(7, 1fr); 
+            max-width: 320px; 
+            gap: 10px;
+        }
+        .grid-day { 
+            grid-template-columns: repeat(6, 1fr); 
+            max-width: 280px; 
+            gap: 12px;
+        }
 
         /* --- DOTS --- */
         .dot {
@@ -165,23 +160,24 @@
             background-color: var(--dot-future);
             cursor: pointer;
             position: relative;
-            transition: transform 0.2s ease;
+            transition: transform 0.2s ease, background-color 0.5s;
         }
-        .dot:hover { transform: scale(1.3); }
+        .dot:hover { transform: scale(1.2); }
         .dot.past { background-color: var(--dot-past); }
+
         .dot.current { 
             background-color: var(--dot-current);
-            box-shadow: 0 0 8px rgba(139, 0, 0, 0.4);
-            animation: breathe 3s infinite ease-in-out;
+            box-shadow: 0 0 10px rgba(139, 0, 0, 0.3);
+            animation: breathe 4s infinite ease-in-out;
         }
 
         @keyframes breathe {
             0%, 100% { transform: scale(1); opacity: 1; }
-            50% { transform: scale(1.2); opacity: 0.8; }
+            50% { transform: scale(1.05); opacity: 0.9; }
         }
 
-        .zoom-out-active { transform: scale(0.1); opacity: 0; pointer-events: none; }
-        .zoom-in-active { transform: scale(3); opacity: 0; pointer-events: none; }
+        .fade-out { opacity: 0; transform: scale(0.95); pointer-events: none; }
+        .fade-in { opacity: 0; transform: scale(1.05); }
 
         /* --- ONBOARDING & QUOTE --- */
         #overlay {
@@ -192,7 +188,7 @@
             justify-content: center;
             align-items: center;
             z-index: 100;
-            transition: opacity 1s ease;
+            transition: opacity 0.8s ease;
         }
         .overlay-hidden { opacity: 0; pointer-events: none; display: none !important; }
 
@@ -202,23 +198,21 @@
             max-width: 400px;
             padding: 20px;
         }
-        .form-container.hidden, .quote-container.hidden {
-            display: none;
-        }
+        .hidden { display: none; }
 
         input, select {
             padding: 12px;
             margin: 10px 0;
             width: 100%;
             border: 1px solid var(--accent);
-            background: transparent;
+            background: rgba(255,255,255,0.5);
             font-family: inherit;
             color: var(--text-color);
             font-size: 16px;
             border-radius: 4px;
         }
 
-        button {
+        button.primary-btn {
             padding: 12px 24px;
             margin-top: 15px;
             border: 1px solid var(--text-color);
@@ -231,74 +225,81 @@
             width: 100%;
             transition: opacity 0.3s;
         }
-        button:hover { opacity: 0.85; }
+        button.primary-btn:hover { opacity: 0.85; }
 
-        .quote-text { font-style: italic; font-size: 1.15rem; margin-bottom: 20px; line-height: 1.5; }
+        .quote-text { font-style: italic; font-size: 1.1rem; margin-bottom: 20px; line-height: 1.5; }
         .quote-author { font-size: 0.9rem; color: var(--accent); }
 
-        /* --- QUOTE OVERLAY (on view change) --- */
+        /* --- QUOTE OVERLAY --- */
         #quote-overlay {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(243, 240, 235, 0.92);
+            background: rgba(243, 240, 235, 0.95);
             display: flex;
             justify-content: center;
             align-items: center;
             z-index: 50;
             opacity: 0;
             pointer-events: none;
-            transition: opacity 0.8s ease;
+            transition: opacity 0.6s ease;
         }
-        #quote-overlay.visible {
-            opacity: 1;
-            pointer-events: auto;
-        }
-        #quote-overlay .quote-container {
-            display: block;
-        }
+        #quote-overlay.visible { opacity: 1; pointer-events: auto; }
 
         /* --- SOCIAL FOOTER --- */
         #social-footer {
             display: flex;
             justify-content: center;
             align-items: center;
-            gap: 18px;
-            padding: 8px 0 4px;
+            gap: 20px;
+            padding: 15px 0;
             z-index: 10;
         }
         #social-footer a {
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            width: 32px; height: 32px;
-            opacity: 0.45;
+            width: 36px; height: 36px;
+            opacity: 0.5;
             transition: opacity 0.3s, transform 0.3s;
             color: var(--text-color);
         }
-        #social-footer a:hover {
-            opacity: 0.85;
-            transform: translateY(-2px);
-        }
-        #social-footer svg { width: 20px; height: 20px; fill: currentColor; }
+        #social-footer a:hover { opacity: 1; transform: translateY(-2px); }
+        #social-footer svg { width: 22px; height: 22px; fill: currentColor; }
 
         /* --- RESET BUTTON --- */
         #reset-btn {
             display: block;
-            margin: 0 auto 10px;
-            padding: 6px 16px;
-            font-size: 0.7rem;
+            margin: 10px auto 30px;
+            padding: 8px 20px;
+            font-size: 0.75rem;
             background: transparent;
             border: 1px solid var(--accent);
             color: var(--accent);
-            width: auto;
             cursor: pointer;
-            border-radius: 3px;
-            opacity: 0.5;
-            transition: opacity 0.3s;
-            z-index: 10;
-            position: relative;
+            border-radius: 4px;
+            opacity: 0.6;
+            transition: all 0.3s;
         }
-        #reset-btn:hover { opacity: 1; }
+        #reset-btn:hover { opacity: 1; background: rgba(0,0,0,0.05); }
+
+        /* --- LIFETIME PROGRESS BAR --- */
+        #life-progress-container {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: rgba(0,0,0,0.05);
+            z-index: 200;
+        }
+        #life-progress-bar {
+            height: 100%;
+            background: var(--accent);
+            width: 0%;
+            transition: width 1.5s ease-out;
+            opacity: 0.8;
+        }
+
     </style>
 </head>
 <body>
@@ -323,7 +324,7 @@
                 <option value="F">Femme (Esp. 82 ans)</option>
             </select>
 
-            <button id="enterBtn" type="button">Entrer</button>
+            <button id="enterBtn" class="primary-btn" type="button">Entrer</button>
         </div>
 
         <div id="quote-box" class="quote-container hidden">
@@ -332,7 +333,7 @@
         </div>
     </div>
 
-    <!-- QUOTE OVERLAY (view transitions) -->
+    <!-- QUOTE OVERLAY -->
     <div id="quote-overlay">
         <div class="quote-container">
             <p class="quote-text" id="transit-q-text"></p>
@@ -372,7 +373,12 @@
         </a>
     </div>
 
-    <button id="reset-btn" type="button">R\u00e9initialiser</button>
+    <button id="reset-btn" type="button">Réinitialiser les données</button>
+
+    <!-- LIFETIME PROGRESS BAR -->
+    <div id="life-progress-container">
+        <div id="life-progress-bar"></div>
+    </div>
 
     <script>
         // --- ERROR HANDLING ---
@@ -384,18 +390,18 @@
         // --- CONFIG ---
         var LIFE_EXP_M = 78;
         var LIFE_EXP_F = 82;
-        var MONTH_NAMES = ["Janvier", "F\u00e9vrier", "Mars", "Avril", "Mai", "Juin", "Juillet", "Ao\u00fbt", "Septembre", "Octobre", "Novembre", "D\u00e9cembre"];
+        var MONTH_NAMES = ["Janvier", "Février", "Mars", "Avril", "Mai", "Juin", "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre"];
         var QUOTES = [
-            { t: "On ne vit qu\u2019une fois, mais si on le fait bien, une fois suffit.", a: "Mae West" },
-            { t: "Ce n\u2019est pas la mort qu\u2019un homme doit craindre, mais de ne jamais commencer \u00e0 vivre.", a: "Marc Aur\u00e8le" },
-            { t: "H\u00e2te-toi de bien vivre et songe que chaque jour est \u00e0 lui seul une vie.", a: "S\u00e9n\u00e8que" },
-            { t: "Tu as peur de mourir ? Mais ta vie actuelle est-elle autre chose que la mort ?", a: "S\u00e9n\u00e8que" },
-            { t: "Le bonheur de ta vie d\u00e9pend de la qualit\u00e9 de tes pens\u00e9es.", a: "Marc Aur\u00e8le" },
-            { t: "Nous souffrons plus souvent en imagination qu\u2019en r\u00e9alit\u00e9.", a: "S\u00e9n\u00e8que" },
-            { t: "La vie est longue si tu sais t\u2019en servir.", a: "S\u00e9n\u00e8que" },
-            { t: "Que la force me soit donn\u00e9e de supporter ce qui ne peut \u00eatre chang\u00e9.", a: "S\u00e9n\u00e8que" },
-            { t: "Chaque nuit, nous mourons. Chaque matin, nous renaissons. C\u2019est chaque jour qui compte.", a: "\u00c9picure" },
-            { t: "L\u2019obstacle sur le chemin devient le chemin.", a: "Marc Aur\u00e8le" }
+            { t: "On ne vit qu’une fois, mais si on le fait bien, une fois suffit.", a: "Mae West" },
+            { t: "Ce n’est pas la mort qu’un homme doit craindre, mais de ne jamais commencer à vivre.", a: "Marc Aurèle" },
+            { t: "Hâte-toi de bien vivre et songe que chaque jour est à lui seul une vie.", a: "Sénèque" },
+            { t: "Tu as peur de mourir ? Mais ta vie actuelle est-elle autre chose que la mort ?", a: "Sénèque" },
+            { t: "Le bonheur de ta vie dépend de la qualité de tes pensées.", a: "Marc Aurèle" },
+            { t: "Nous souffrons plus souvent en imagination qu’en réalité.", a: "Sénèque" },
+            { t: "La vie est longue si tu sais t’en servir.", a: "Sénèque" },
+            { t: "Que la force me soit donnée de supporter ce qui ne peut être changé.", a: "Sénèque" },
+            { t: "Chaque nuit, nous mourons. Chaque matin, nous renaissons. C’est chaque jour qui compte.", a: "Épicure" },
+            { t: "L’obstacle sur le chemin devient le chemin.", a: "Marc Aurèle" }
         ];
 
         // --- STATE ---
@@ -406,7 +412,8 @@
             view: 'LIFE',
             selectedYear: null,
             selectedMonth: null,
-            selectedDay: null
+            selectedDay: null,
+            isNavigating: false
         };
 
         // --- DOM ELEMENTS ---
@@ -422,6 +429,7 @@
         var breadcrumbEl = document.getElementById('breadcrumb');
         var quoteOverlay = document.getElementById('quote-overlay');
         var resetBtn = document.getElementById('reset-btn');
+        var progressBar = document.getElementById('life-progress-bar');
 
         // --- QUOTE FETCHING ---
         function fetchQuote(callback) {
@@ -437,12 +445,8 @@
                         callback(QUOTES[Math.floor(Math.random() * QUOTES.length)]);
                     }
                 };
-                xhr.onerror = function() {
-                    callback(QUOTES[Math.floor(Math.random() * QUOTES.length)]);
-                };
-                xhr.ontimeout = function() {
-                    callback(QUOTES[Math.floor(Math.random() * QUOTES.length)]);
-                };
+                xhr.onerror = function() { callback(QUOTES[Math.floor(Math.random() * QUOTES.length)]); };
+                xhr.ontimeout = function() { callback(QUOTES[Math.floor(Math.random() * QUOTES.length)]); };
                 xhr.send();
             } catch(e) {
                 callback(QUOTES[Math.floor(Math.random() * QUOTES.length)]);
@@ -451,13 +455,13 @@
 
         function showTransitQuote(callback) {
             fetchQuote(function(q) {
-                document.getElementById('transit-q-text').innerText = '\u201C' + q.t + '\u201D';
-                document.getElementById('transit-q-author').innerText = '\u2014 ' + q.a;
+                document.getElementById('transit-q-text').innerText = '“' + q.t + '”';
+                document.getElementById('transit-q-author').innerText = '— ' + q.a;
                 quoteOverlay.classList.add('visible');
                 setTimeout(function() {
                     quoteOverlay.classList.remove('visible');
                     if (callback) callback();
-                }, 2500);
+                }, 2000);
             });
         }
 
@@ -479,7 +483,7 @@
                     showQuoteAndStart();
                 }
             } catch (e) {
-                console.log("Pas de donn\u00e9es ou erreur stockage.");
+                console.log("Pas de données ou erreur stockage.");
             }
         }
 
@@ -488,7 +492,7 @@
             var genderVal = document.getElementById('genderInput').value;
 
             if (!dobVal) {
-                alert("Veuillez s\u00e9lectionner une date.");
+                alert("Veuillez sélectionner une date.");
                 return;
             }
 
@@ -496,7 +500,7 @@
                 localStorage.setItem('mm_dob', dobVal);
                 localStorage.setItem('mm_gender', genderVal);
             } catch (e) {
-                console.warn("Impossible de sauvegarder (mode priv\u00e9 ?)");
+                console.warn("Impossible de sauvegarder (mode privé ?)");
             }
 
             state.dob = new Date(dobVal);
@@ -507,6 +511,19 @@
             showQuoteAndStart();
         }
 
+        function updateProgressBar() {
+            if (!state.dob) {
+                progressBar.style.width = '0%';
+                return;
+            }
+            var now = new Date();
+            var ageInMs = now - state.dob;
+            var expectancyInMs = state.expectancy * 365.25 * 24 * 60 * 60 * 1000;
+            var pct = (ageInMs / expectancyInMs) * 100;
+            pct = Math.min(100, Math.max(0, pct));
+            progressBar.style.width = pct + '%';
+        }
+
         // --- EVENTS ---
         enterBtn.addEventListener('click', saveUserData);
         enterBtn.addEventListener('touchstart', function(e) {
@@ -514,22 +531,132 @@
             saveUserData();
         });
 
-        headerEl.addEventListener('click', goUpLevel);
-
         resetBtn.addEventListener('click', function() {
-            if (confirm('R\u00e9initialiser toutes les donn\u00e9es ?')) {
-                try { localStorage.removeItem('mm_dob'); localStorage.removeItem('mm_gender'); } catch(e) {}
-                location.reload();
+            if (confirm('Réinitialiser toutes les données ?')) {
+                try { 
+                    localStorage.removeItem('mm_dob'); 
+                    localStorage.removeItem('mm_gender'); 
+                } catch(e) {}
+
+                // Reset State
+                state.dob = null;
+                state.view = 'LIFE';
+                state.selectedYear = null;
+                state.selectedMonth = null;
+                state.selectedDay = null;
+
+                // Reset UI
+                container.innerHTML = '';
+                statsEl.innerHTML = '';
+                titleEl.innerText = 'Ma Vie';
+                subtitleEl.innerText = 'Vue d\'ensemble';
+                breadcrumbEl.innerHTML = '';
+                updateProgressBar(); // Reset progress bar
+
+                // Show Onboarding
+                quoteBox.classList.add('hidden');
+                onboarding.classList.remove('hidden');
+                overlay.classList.remove('overlay-hidden');
+                overlay.style.opacity = '1';
+
+                // Clear Inputs
+                document.getElementById('dobInput').value = '';
             }
         });
+
+        // --- ZOOM & NAVIGATION LOGIC ---
+
+        // 1. Keyboard Zoom (+ / -)
+        document.addEventListener('keydown', function(e) {
+            if (state.isNavigating) return;
+            if (e.key === '+' || e.key === '=') {
+                zoomIn();
+            } else if (e.key === '-') {
+                zoomOut();
+            }
+        });
+
+        // 2. Mouse Wheel Zoom (Ctrl + Wheel)
+        document.addEventListener('wheel', function(e) {
+            if (state.isNavigating) return;
+            if (e.ctrlKey) {
+                e.preventDefault();
+                if (e.deltaY < 0) zoomIn();
+                else if (e.deltaY > 0) zoomOut();
+            }
+        }, { passive: false });
+
+        // 3. Touch Pinch Zoom
+        var touchStartDist = 0;
+        var touchScale = 1;
+
+        document.addEventListener('touchstart', function(e) {
+            if (e.touches.length === 2) {
+                touchStartDist = Math.hypot(
+                    e.touches[0].pageX - e.touches[1].pageX,
+                    e.touches[0].pageY - e.touches[1].pageY
+                );
+            }
+        }, { passive: true });
+
+        document.addEventListener('touchmove', function(e) {
+            if (state.isNavigating) return;
+            if (e.touches.length === 2) {
+                var dist = Math.hypot(
+                    e.touches[0].pageX - e.touches[1].pageX,
+                    e.touches[0].pageY - e.touches[1].pageY
+                );
+                if (touchStartDist > 0) {
+                    var scale = dist / touchStartDist;
+                    // Threshold for pinch
+                    if (scale > 1.5) {
+                        zoomIn();
+                        touchStartDist = 0; // Reset to prevent multiple triggers
+                    } else if (scale < 0.6) {
+                        zoomOut();
+                        touchStartDist = 0;
+                    }
+                }
+            }
+        }, { passive: true });
+
+
+        function zoomIn() {
+            if (state.isNavigating) return;
+            var now = new Date();
+
+            if (state.view === 'LIFE') {
+                transitionTo('YEAR', now.getFullYear());
+            } else if (state.view === 'YEAR') {
+                transitionTo('MONTH', now.getMonth());
+            } else if (state.view === 'MONTH') {
+                transitionTo('DAY', now.getDate());
+            }
+        }
+
+        function zoomOut() {
+            if (state.isNavigating) return;
+            goUpLevel();
+        }
+
+        function goUpLevel() {
+            var prevView = null;
+            if (state.view === 'DAY') prevView = 'MONTH';
+            else if (state.view === 'MONTH') prevView = 'YEAR';
+            else if (state.view === 'YEAR') prevView = 'LIFE';
+            else return;
+
+            navigateTo(prevView);
+        }
 
         // --- LOGIC ---
         function showQuoteAndStart() {
             fetchQuote(function(q) {
-                document.getElementById('q-text').innerText = '\u201C' + q.t + '\u201D';
-                document.getElementById('q-author').innerText = '\u2014 ' + q.a;
+                document.getElementById('q-text').innerText = '“' + q.t + '”';
+                document.getElementById('q-author').innerText = '— ' + q.a;
 
                 quoteBox.classList.remove('hidden');
+                updateProgressBar(); // Update progress bar on start
 
                 setTimeout(function() {
                     overlay.style.opacity = '0';
@@ -556,49 +683,52 @@
                 breadcrumbEl.innerHTML = '';
                 return;
             }
+
             parts.push('<span onclick="navigateTo(\'LIFE\')">Vie</span>');
             if (state.view === 'YEAR' || state.view === 'MONTH' || state.view === 'DAY') {
                 if (state.view === 'YEAR') {
-                    parts.push('<span class="sep"> \u203a </span><span>' + state.selectedYear + '</span>');
+                    parts.push('<span class="sep"> › </span><span>' + state.selectedYear + '</span>');
                 } else {
-                    parts.push('<span class="sep"> \u203a </span><span onclick="navigateTo(\'YEAR\')">' + state.selectedYear + '</span>');
+                    parts.push('<span class="sep"> › </span><span onclick="navigateTo(\'YEAR\')">' + state.selectedYear + '</span>');
                 }
             }
             if (state.view === 'MONTH' || state.view === 'DAY') {
                 var mName = MONTH_NAMES[state.selectedMonth];
                 if (state.view === 'MONTH') {
-                    parts.push('<span class="sep"> \u203a </span><span>' + mName + '</span>');
+                    parts.push('<span class="sep"> › </span><span>' + mName + '</span>');
                 } else {
-                    parts.push('<span class="sep"> \u203a </span><span onclick="navigateTo(\'MONTH\')">' + mName + '</span>');
+                    parts.push('<span class="sep"> › </span><span onclick="navigateTo(\'MONTH\')">' + mName + '</span>');
                 }
             }
             if (state.view === 'DAY') {
-                parts.push('<span class="sep"> \u203a </span><span>' + state.selectedDay + '</span>');
+                parts.push('<span class="sep"> › </span><span>' + state.selectedDay + '</span>');
             }
             breadcrumbEl.innerHTML = parts.join('');
         }
 
-        // Global navigation function for breadcrumb
         window.navigateTo = function(targetView) {
-            container.classList.add('zoom-out-active');
-            setTimeout(function() {
+            if (state.isNavigating) return;
+            state.isNavigating = true;
+
+            container.classList.add('fade-out');
+
+            // Show quote on navigation (zoom out or breadcrumb click)
+            showTransitQuote(function() {
                 state.view = targetView;
                 renderView();
-                container.style.transform = 'scale(1.5)';
-                container.style.opacity = '0';
-                requestAnimationFrame(function() {
-                    requestAnimationFrame(function() {
-                        container.style.transform = '';
-                        container.style.opacity = '';
-                    });
-                });
-            }, 600);
+                container.classList.remove('fade-out');
+                container.classList.add('fade-in');
+                setTimeout(function() { 
+                    container.classList.remove('fade-in'); 
+                    state.isNavigating = false;
+                }, 500);
+            });
         };
 
         function renderView() {
-            container.classList.remove('zoom-in-active', 'zoom-out-active');
             container.innerHTML = '';
             updateBreadcrumb();
+            updateProgressBar(); // Ensure progress bar is correct
 
             var now = new Date();
 
@@ -606,7 +736,7 @@
             if (state.view === 'LIFE') {
                 container.className = 'grid-life';
                 titleEl.innerText = "Ma Vie";
-                subtitleEl.innerText = "Chaque point est une ann\u00e9e";
+                subtitleEl.innerText = "Chaque point est une année";
 
                 var currentYear = now.getFullYear();
                 var birthYear = state.dob.getFullYear();
@@ -627,10 +757,10 @@
 
                 var agePassed = getAccurateAge(state.dob, now);
                 var ageRemaining = Math.max(0, state.expectancy - agePassed);
-                statsEl.innerHTML = agePassed + ' ann\u00e9es pass\u00e9es \u00b7 ' + ageRemaining + ' ann\u00e9es restantes';
+                statsEl.innerHTML = agePassed + ' années passées · ' + ageRemaining + ' années restantes';
             }
 
-            // --- VUE ANN\u00c9E ---
+            // --- VUE ANNÉE ---
             else if (state.view === 'YEAR') {
                 container.className = 'grid-year';
                 titleEl.innerText = String(state.selectedYear);
@@ -664,7 +794,7 @@
                 } else {
                     monthsPassed = 0; monthsRemaining = 12;
                 }
-                statsEl.innerHTML = monthsPassed + ' mois pass\u00e9s \u00b7 ' + monthsRemaining + ' mois restants';
+                statsEl.innerHTML = monthsPassed + ' mois passés · ' + monthsRemaining + ' mois restants';
             }
 
             // --- VUE MOIS ---
@@ -698,7 +828,7 @@
                 }
 
                 var daysRemaining = daysInMonth - daysPassed;
-                statsEl.innerHTML = daysPassed + ' jours pass\u00e9s \u00b7 ' + daysRemaining + ' jours restants';
+                statsEl.innerHTML = daysPassed + ' jours passés · ' + daysRemaining + ' jours restants';
             }
 
             // --- VUE JOUR ---
@@ -725,7 +855,6 @@
                         if (i < currentHour) dot.classList.add('past');
                         else if (i === currentHour) dot.classList.add('current');
                     }
-                    // Future day: all dots stay default (future)
 
                     container.appendChild(dot);
                 }
@@ -739,7 +868,7 @@
                 } else {
                     hoursPassed = 0; hoursRemaining = 24;
                 }
-                statsEl.innerHTML = hoursPassed + 'h \u00e9coul\u00e9es \u00b7 ' + hoursRemaining + 'h restantes';
+                statsEl.innerHTML = hoursPassed + 'h écoulées · ' + hoursRemaining + 'h restantes';
             }
         }
 
@@ -750,7 +879,10 @@
         }
 
         function transitionTo(nextView, value) {
-            container.classList.add('zoom-in-active');
+            if (state.isNavigating) return;
+            state.isNavigating = true;
+
+            container.classList.add('fade-out');
 
             showTransitQuote(function() {
                 if (nextView === 'YEAR') state.selectedYear = value;
@@ -759,37 +891,13 @@
                 state.view = nextView;
                 renderView();
 
-                container.style.transform = 'scale(0.8)';
-                container.style.opacity = '0';
-                requestAnimationFrame(function() {
-                    requestAnimationFrame(function() {
-                        container.style.transform = '';
-                        container.style.opacity = '';
-                    });
-                });
+                container.classList.remove('fade-out');
+                container.classList.add('fade-in');
+                setTimeout(function() { 
+                    container.classList.remove('fade-in'); 
+                    state.isNavigating = false;
+                }, 500);
             });
-        }
-
-        function goUpLevel() {
-            var prevView = null;
-            if (state.view === 'DAY') prevView = 'MONTH';
-            else if (state.view === 'MONTH') prevView = 'YEAR';
-            else if (state.view === 'YEAR') prevView = 'LIFE';
-            else return;
-
-            container.classList.add('zoom-out-active');
-            setTimeout(function() {
-                state.view = prevView;
-                renderView();
-                container.style.transform = 'scale(1.5)';
-                container.style.opacity = '0';
-                requestAnimationFrame(function() {
-                    requestAnimationFrame(function() {
-                        container.style.transform = '';
-                        container.style.opacity = '';
-                    });
-                });
-            }, 600);
         }
 
         // --- ANTI-SPAM CONTACT ---
