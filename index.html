@@ -1,0 +1,812 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Memento Mori</title>
+    <style>
+        :root {
+            --bg-color: #f3f0eb;
+            --text-color: #4a4a4a;
+            --dot-past: #1a1a1a;
+            --dot-future: #d1d1d1;
+            --dot-current: #8b0000;
+            --accent: #a89f91;
+            --transition-speed: 1.2s;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: 'Georgia', 'Times New Roman', serif;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            transition: background-color 1s ease;
+            position: relative;
+        }
+
+        /* --- ZEN ANIMATED BACKGROUND --- */
+        #zen-bg {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: 0;
+            overflow: hidden;
+            pointer-events: none;
+        }
+        .zen-orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: 0.18;
+            will-change: transform;
+        }
+        .zen-orb:nth-child(1) {
+            width: 350px; height: 350px;
+            background: #c4b8a8;
+            top: -80px; left: -60px;
+            animation: orbDrift1 25s infinite ease-in-out alternate;
+        }
+        .zen-orb:nth-child(2) {
+            width: 280px; height: 280px;
+            background: #a89f91;
+            bottom: -50px; right: -40px;
+            animation: orbDrift2 30s infinite ease-in-out alternate;
+        }
+        .zen-orb:nth-child(3) {
+            width: 200px; height: 200px;
+            background: #8b7d6b;
+            top: 40%; left: 50%;
+            animation: orbDrift3 35s infinite ease-in-out alternate;
+        }
+        @keyframes orbDrift1 {
+            0%   { transform: translate(0, 0) scale(1); }
+            33%  { transform: translate(120px, 80px) scale(1.1); }
+            66%  { transform: translate(60px, 200px) scale(0.95); }
+            100% { transform: translate(180px, 100px) scale(1.05); }
+        }
+        @keyframes orbDrift2 {
+            0%   { transform: translate(0, 0) scale(1); }
+            33%  { transform: translate(-100px, -60px) scale(1.08); }
+            66%  { transform: translate(-160px, -120px) scale(0.92); }
+            100% { transform: translate(-80px, -180px) scale(1.04); }
+        }
+        @keyframes orbDrift3 {
+            0%   { transform: translate(0, 0) scale(1); }
+            25%  { transform: translate(-80px, 60px) scale(1.15); }
+            50%  { transform: translate(40px, -40px) scale(0.9); }
+            75%  { transform: translate(100px, 80px) scale(1.1); }
+            100% { transform: translate(-40px, -80px) scale(1); }
+        }
+
+        /* --- TYPOGRAPHY & LAYOUT --- */
+        header {
+            padding: 15px;
+            text-align: center;
+            z-index: 10;
+            opacity: 0.8;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+        h1 { font-size: 1.1rem; letter-spacing: 2px; text-transform: uppercase; font-weight: normal; }
+        h2 { font-size: 0.85rem; color: var(--accent); margin-top: 5px; font-weight: normal; }
+
+        /* --- BREADCRUMB --- */
+        #breadcrumb {
+            text-align: center;
+            font-size: 0.75rem;
+            color: var(--accent);
+            padding: 0 15px 8px;
+            z-index: 10;
+            cursor: pointer;
+            letter-spacing: 1px;
+        }
+        #breadcrumb span {
+            cursor: pointer;
+            transition: color 0.3s;
+        }
+        #breadcrumb span:hover {
+            color: var(--dot-current);
+        }
+        #breadcrumb .sep {
+            cursor: default;
+            opacity: 0.5;
+        }
+
+        main {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            perspective: 1000px;
+            overflow: hidden;
+            z-index: 5;
+        }
+
+        footer {
+            padding: 10px 15px;
+            text-align: center;
+            font-size: 0.75rem;
+            color: var(--accent);
+            z-index: 10;
+            flex-shrink: 0;
+            min-height: 50px;
+        }
+
+        /* --- GRID SYSTEM --- */
+        #grid-container {
+            display: grid;
+            gap: 8px;
+            padding: 10px;
+            width: 95vw;
+            max-width: 600px;
+            max-height: 80vh;
+            transition: transform var(--transition-speed) cubic-bezier(0.25, 1, 0.5, 1), 
+                    opacity var(--transition-speed) ease;
+            transform-origin: center center;
+            margin: auto;
+            will-change: transform, opacity;
+        }
+
+        .grid-life { grid-template-columns: repeat(auto-fit, minmax(14px, 1fr)); gap: 8px; }
+        .grid-year { grid-template-columns: repeat(4, 1fr); width: 80vw; max-width: 300px; gap: 12px; }
+        .grid-month { grid-template-columns: repeat(7, 1fr); width: 85vw; max-width: 350px; gap: 10px; }
+        .grid-day { grid-template-columns: repeat(6, 1fr); width: 80vw; max-width: 300px; gap: 10px; }
+
+        /* --- DOTS --- */
+        .dot {
+            aspect-ratio: 1;
+            border-radius: 50%;
+            background-color: var(--dot-future);
+            cursor: pointer;
+            position: relative;
+            transition: transform 0.2s ease;
+        }
+        .dot:hover { transform: scale(1.3); }
+        .dot.past { background-color: var(--dot-past); }
+        .dot.current { 
+            background-color: var(--dot-current);
+            box-shadow: 0 0 8px rgba(139, 0, 0, 0.4);
+            animation: breathe 3s infinite ease-in-out;
+        }
+
+        @keyframes breathe {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.2); opacity: 0.8; }
+        }
+
+        .zoom-out-active { transform: scale(0.1); opacity: 0; pointer-events: none; }
+        .zoom-in-active { transform: scale(3); opacity: 0; pointer-events: none; }
+
+        /* --- ONBOARDING & QUOTE --- */
+        #overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--bg-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            transition: opacity 1s ease;
+        }
+        .overlay-hidden { opacity: 0; pointer-events: none; display: none !important; }
+
+        .form-container, .quote-container {
+            text-align: center;
+            width: 90%;
+            max-width: 400px;
+            padding: 20px;
+        }
+        .form-container.hidden, .quote-container.hidden {
+            display: none;
+        }
+
+        input, select {
+            padding: 12px;
+            margin: 10px 0;
+            width: 100%;
+            border: 1px solid var(--accent);
+            background: transparent;
+            font-family: inherit;
+            color: var(--text-color);
+            font-size: 16px;
+            border-radius: 4px;
+        }
+
+        button {
+            padding: 12px 24px;
+            margin-top: 15px;
+            border: 1px solid var(--text-color);
+            background: var(--text-color);
+            color: var(--bg-color);
+            font-family: inherit;
+            font-size: 1rem;
+            cursor: pointer;
+            border-radius: 4px;
+            width: 100%;
+            transition: opacity 0.3s;
+        }
+        button:hover { opacity: 0.85; }
+
+        .quote-text { font-style: italic; font-size: 1.15rem; margin-bottom: 20px; line-height: 1.5; }
+        .quote-author { font-size: 0.9rem; color: var(--accent); }
+
+        /* --- QUOTE OVERLAY (on view change) --- */
+        #quote-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(243, 240, 235, 0.92);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 50;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.8s ease;
+        }
+        #quote-overlay.visible {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        #quote-overlay .quote-container {
+            display: block;
+        }
+
+        /* --- SOCIAL FOOTER --- */
+        #social-footer {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 18px;
+            padding: 8px 0 4px;
+            z-index: 10;
+        }
+        #social-footer a {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px; height: 32px;
+            opacity: 0.45;
+            transition: opacity 0.3s, transform 0.3s;
+            color: var(--text-color);
+        }
+        #social-footer a:hover {
+            opacity: 0.85;
+            transform: translateY(-2px);
+        }
+        #social-footer svg { width: 20px; height: 20px; fill: currentColor; }
+
+        /* --- RESET BUTTON --- */
+        #reset-btn {
+            display: block;
+            margin: 0 auto 10px;
+            padding: 6px 16px;
+            font-size: 0.7rem;
+            background: transparent;
+            border: 1px solid var(--accent);
+            color: var(--accent);
+            width: auto;
+            cursor: pointer;
+            border-radius: 3px;
+            opacity: 0.5;
+            transition: opacity 0.3s;
+            z-index: 10;
+            position: relative;
+        }
+        #reset-btn:hover { opacity: 1; }
+    </style>
+</head>
+<body>
+
+    <!-- ZEN ANIMATED BACKGROUND -->
+    <div id="zen-bg">
+        <div class="zen-orb"></div>
+        <div class="zen-orb"></div>
+        <div class="zen-orb"></div>
+    </div>
+
+    <!-- OVERLAY -->
+    <div id="overlay">
+        <div id="onboarding" class="form-container">
+            <h1>Memento Mori</h1>
+            <p style="margin-bottom: 20px; color: var(--accent); font-size: 0.9rem;">Entrez votre date de naissance</p>
+
+            <input type="date" id="dobInput" required>
+
+            <select id="genderInput">
+                <option value="M">Homme (Esp. 78 ans)</option>
+                <option value="F">Femme (Esp. 82 ans)</option>
+            </select>
+
+            <button id="enterBtn" type="button">Entrer</button>
+        </div>
+
+        <div id="quote-box" class="quote-container hidden">
+            <p class="quote-text" id="q-text"></p>
+            <p class="quote-author" id="q-author"></p>
+        </div>
+    </div>
+
+    <!-- QUOTE OVERLAY (view transitions) -->
+    <div id="quote-overlay">
+        <div class="quote-container">
+            <p class="quote-text" id="transit-q-text"></p>
+            <p class="quote-author" id="transit-q-author"></p>
+        </div>
+    </div>
+
+    <!-- APP -->
+    <header id="app-header">
+        <h1 id="view-title">Ma Vie</h1>
+        <h2 id="view-subtitle">Vue d'ensemble</h2>
+    </header>
+
+    <div id="breadcrumb"></div>
+
+    <main>
+        <div id="grid-container" class="grid-life"></div>
+    </main>
+
+    <footer>
+        <div id="stats"></div>
+    </footer>
+
+    <!-- SOCIAL FOOTER -->
+    <div id="social-footer">
+        <a href="https://www.linkedin.com/company/akawaka" target="_blank" rel="noopener" title="LinkedIn">
+            <svg viewBox="0 0 24 24"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+        </a>
+        <a href="https://github.com/akawaka" target="_blank" rel="noopener" title="GitHub">
+            <svg viewBox="0 0 24 24"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg>
+        </a>
+        <a href="https://akawaka.fr" target="_blank" rel="noopener" title="Akawaka">
+            <svg viewBox="0 0 24 24"><path d="M12 2L2 19h4l1.5-3h9l1.5 3h4L12 2zm0 5.5L15.5 14h-7L12 7.5z"/></svg>
+        </a>
+        <a href="#" id="contact-link" title="Contact">
+            <svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
+        </a>
+    </div>
+
+    <button id="reset-btn" type="button">R\u00e9initialiser</button>
+
+    <script>
+        // --- ERROR HANDLING ---
+        window.onerror = function(msg, url, line) {
+            console.error("Erreur : " + msg + " (ligne " + line + ")");
+            return false;
+        };
+
+        // --- CONFIG ---
+        var LIFE_EXP_M = 78;
+        var LIFE_EXP_F = 82;
+        var MONTH_NAMES = ["Janvier", "F\u00e9vrier", "Mars", "Avril", "Mai", "Juin", "Juillet", "Ao\u00fbt", "Septembre", "Octobre", "Novembre", "D\u00e9cembre"];
+        var QUOTES = [
+            { t: "On ne vit qu\u2019une fois, mais si on le fait bien, une fois suffit.", a: "Mae West" },
+            { t: "Ce n\u2019est pas la mort qu\u2019un homme doit craindre, mais de ne jamais commencer \u00e0 vivre.", a: "Marc Aur\u00e8le" },
+            { t: "H\u00e2te-toi de bien vivre et songe que chaque jour est \u00e0 lui seul une vie.", a: "S\u00e9n\u00e8que" },
+            { t: "Tu as peur de mourir ? Mais ta vie actuelle est-elle autre chose que la mort ?", a: "S\u00e9n\u00e8que" },
+            { t: "Le bonheur de ta vie d\u00e9pend de la qualit\u00e9 de tes pens\u00e9es.", a: "Marc Aur\u00e8le" },
+            { t: "Nous souffrons plus souvent en imagination qu\u2019en r\u00e9alit\u00e9.", a: "S\u00e9n\u00e8que" },
+            { t: "La vie est longue si tu sais t\u2019en servir.", a: "S\u00e9n\u00e8que" },
+            { t: "Que la force me soit donn\u00e9e de supporter ce qui ne peut \u00eatre chang\u00e9.", a: "S\u00e9n\u00e8que" },
+            { t: "Chaque nuit, nous mourons. Chaque matin, nous renaissons. C\u2019est chaque jour qui compte.", a: "\u00c9picure" },
+            { t: "L\u2019obstacle sur le chemin devient le chemin.", a: "Marc Aur\u00e8le" }
+        ];
+
+        // --- STATE ---
+        var state = {
+            dob: null,
+            gender: 'M',
+            expectancy: 78,
+            view: 'LIFE',
+            selectedYear: null,
+            selectedMonth: null,
+            selectedDay: null
+        };
+
+        // --- DOM ELEMENTS ---
+        var container = document.getElementById('grid-container');
+        var titleEl = document.getElementById('view-title');
+        var subtitleEl = document.getElementById('view-subtitle');
+        var statsEl = document.getElementById('stats');
+        var overlay = document.getElementById('overlay');
+        var onboarding = document.getElementById('onboarding');
+        var quoteBox = document.getElementById('quote-box');
+        var enterBtn = document.getElementById('enterBtn');
+        var headerEl = document.getElementById('app-header');
+        var breadcrumbEl = document.getElementById('breadcrumb');
+        var quoteOverlay = document.getElementById('quote-overlay');
+        var resetBtn = document.getElementById('reset-btn');
+
+        // --- QUOTE FETCHING ---
+        function fetchQuote(callback) {
+            try {
+                var xhr = new XMLHttpRequest();
+                xhr.open('GET', 'https://stoic-quotes.com/api/quote', true);
+                xhr.timeout = 3000;
+                xhr.onload = function() {
+                    if (xhr.status === 200) {
+                        var data = JSON.parse(xhr.responseText);
+                        callback({ t: data.text, a: data.author });
+                    } else {
+                        callback(QUOTES[Math.floor(Math.random() * QUOTES.length)]);
+                    }
+                };
+                xhr.onerror = function() {
+                    callback(QUOTES[Math.floor(Math.random() * QUOTES.length)]);
+                };
+                xhr.ontimeout = function() {
+                    callback(QUOTES[Math.floor(Math.random() * QUOTES.length)]);
+                };
+                xhr.send();
+            } catch(e) {
+                callback(QUOTES[Math.floor(Math.random() * QUOTES.length)]);
+            }
+        }
+
+        function showTransitQuote(callback) {
+            fetchQuote(function(q) {
+                document.getElementById('transit-q-text').innerText = '\u201C' + q.t + '\u201D';
+                document.getElementById('transit-q-author').innerText = '\u2014 ' + q.a;
+                quoteOverlay.classList.add('visible');
+                setTimeout(function() {
+                    quoteOverlay.classList.remove('visible');
+                    if (callback) callback();
+                }, 2500);
+            });
+        }
+
+        // --- INITIALIZATION ---
+        function init() {
+            try {
+                var storedDob = localStorage.getItem('mm_dob');
+                var storedGender = localStorage.getItem('mm_gender');
+
+                if (storedDob && storedGender) {
+                    var d = new Date(storedDob);
+                    if (isNaN(d.getTime())) throw new Error("Date invalide");
+
+                    state.dob = d;
+                    state.gender = storedGender;
+                    state.expectancy = (state.gender === 'M') ? LIFE_EXP_M : LIFE_EXP_F;
+
+                    onboarding.classList.add('hidden');
+                    showQuoteAndStart();
+                }
+            } catch (e) {
+                console.log("Pas de donn\u00e9es ou erreur stockage.");
+            }
+        }
+
+        function saveUserData() {
+            var dobVal = document.getElementById('dobInput').value;
+            var genderVal = document.getElementById('genderInput').value;
+
+            if (!dobVal) {
+                alert("Veuillez s\u00e9lectionner une date.");
+                return;
+            }
+
+            try {
+                localStorage.setItem('mm_dob', dobVal);
+                localStorage.setItem('mm_gender', genderVal);
+            } catch (e) {
+                console.warn("Impossible de sauvegarder (mode priv\u00e9 ?)");
+            }
+
+            state.dob = new Date(dobVal);
+            state.gender = genderVal;
+            state.expectancy = (state.gender === 'M') ? LIFE_EXP_M : LIFE_EXP_F;
+
+            onboarding.classList.add('hidden');
+            showQuoteAndStart();
+        }
+
+        // --- EVENTS ---
+        enterBtn.addEventListener('click', saveUserData);
+        enterBtn.addEventListener('touchstart', function(e) {
+            e.preventDefault();
+            saveUserData();
+        });
+
+        headerEl.addEventListener('click', goUpLevel);
+
+        resetBtn.addEventListener('click', function() {
+            if (confirm('R\u00e9initialiser toutes les donn\u00e9es ?')) {
+                try { localStorage.removeItem('mm_dob'); localStorage.removeItem('mm_gender'); } catch(e) {}
+                location.reload();
+            }
+        });
+
+        // --- LOGIC ---
+        function showQuoteAndStart() {
+            fetchQuote(function(q) {
+                document.getElementById('q-text').innerText = '\u201C' + q.t + '\u201D';
+                document.getElementById('q-author').innerText = '\u2014 ' + q.a;
+
+                quoteBox.classList.remove('hidden');
+
+                setTimeout(function() {
+                    overlay.style.opacity = '0';
+                    setTimeout(function() {
+                        overlay.classList.add('overlay-hidden');
+                        renderView();
+                    }, 1000);
+                }, 3000);
+            });
+        }
+
+        function getAccurateAge(dob, now) {
+            var age = now.getFullYear() - dob.getFullYear();
+            var monthDiff = now.getMonth() - dob.getMonth();
+            if (monthDiff < 0 || (monthDiff === 0 && now.getDate() < dob.getDate())) {
+                age--;
+            }
+            return age;
+        }
+
+        function updateBreadcrumb() {
+            var parts = [];
+            if (state.view === 'LIFE') {
+                breadcrumbEl.innerHTML = '';
+                return;
+            }
+            parts.push('<span onclick="navigateTo(\'LIFE\')">Vie</span>');
+            if (state.view === 'YEAR' || state.view === 'MONTH' || state.view === 'DAY') {
+                if (state.view === 'YEAR') {
+                    parts.push('<span class="sep"> \u203a </span><span>' + state.selectedYear + '</span>');
+                } else {
+                    parts.push('<span class="sep"> \u203a </span><span onclick="navigateTo(\'YEAR\')">' + state.selectedYear + '</span>');
+                }
+            }
+            if (state.view === 'MONTH' || state.view === 'DAY') {
+                var mName = MONTH_NAMES[state.selectedMonth];
+                if (state.view === 'MONTH') {
+                    parts.push('<span class="sep"> \u203a </span><span>' + mName + '</span>');
+                } else {
+                    parts.push('<span class="sep"> \u203a </span><span onclick="navigateTo(\'MONTH\')">' + mName + '</span>');
+                }
+            }
+            if (state.view === 'DAY') {
+                parts.push('<span class="sep"> \u203a </span><span>' + state.selectedDay + '</span>');
+            }
+            breadcrumbEl.innerHTML = parts.join('');
+        }
+
+        // Global navigation function for breadcrumb
+        window.navigateTo = function(targetView) {
+            container.classList.add('zoom-out-active');
+            setTimeout(function() {
+                state.view = targetView;
+                renderView();
+                container.style.transform = 'scale(1.5)';
+                container.style.opacity = '0';
+                requestAnimationFrame(function() {
+                    requestAnimationFrame(function() {
+                        container.style.transform = '';
+                        container.style.opacity = '';
+                    });
+                });
+            }, 600);
+        };
+
+        function renderView() {
+            container.classList.remove('zoom-in-active', 'zoom-out-active');
+            container.innerHTML = '';
+            updateBreadcrumb();
+
+            var now = new Date();
+
+            // --- VUE VIE ---
+            if (state.view === 'LIFE') {
+                container.className = 'grid-life';
+                titleEl.innerText = "Ma Vie";
+                subtitleEl.innerText = "Chaque point est une ann\u00e9e";
+
+                var currentYear = now.getFullYear();
+                var birthYear = state.dob.getFullYear();
+                var totalYears = Math.max(state.expectancy, (currentYear - birthYear) + 5);
+
+                for (var i = 0; i < totalYears; i++) {
+                    var year = birthYear + i;
+                    var dot = createDot();
+
+                    if (year < currentYear) dot.classList.add('past');
+                    else if (year === currentYear) dot.classList.add('current');
+
+                    (function(y) {
+                        dot.onclick = function() { transitionTo('YEAR', y); };
+                    })(year);
+                    container.appendChild(dot);
+                }
+
+                var agePassed = getAccurateAge(state.dob, now);
+                var ageRemaining = Math.max(0, state.expectancy - agePassed);
+                statsEl.innerHTML = agePassed + ' ann\u00e9es pass\u00e9es \u00b7 ' + ageRemaining + ' ann\u00e9es restantes';
+            }
+
+            // --- VUE ANN\u00c9E ---
+            else if (state.view === 'YEAR') {
+                container.className = 'grid-year';
+                titleEl.innerText = String(state.selectedYear);
+                subtitleEl.innerText = "Chaque point est un mois";
+
+                var curMonth = now.getMonth();
+                var curYear = now.getFullYear();
+
+                for (var i = 0; i < 12; i++) {
+                    var dot = createDot();
+
+                    if (state.selectedYear < curYear) {
+                        dot.classList.add('past');
+                    } else if (state.selectedYear === curYear) {
+                        if (i < curMonth) dot.classList.add('past');
+                        else if (i === curMonth) dot.classList.add('current');
+                    }
+
+                    (function(m) {
+                        dot.onclick = function() { transitionTo('MONTH', m); };
+                    })(i);
+                    container.appendChild(dot);
+                }
+
+                var monthsPassed, monthsRemaining;
+                if (state.selectedYear < curYear) {
+                    monthsPassed = 12; monthsRemaining = 0;
+                } else if (state.selectedYear === curYear) {
+                    monthsPassed = curMonth;
+                    monthsRemaining = 12 - curMonth - 1;
+                } else {
+                    monthsPassed = 0; monthsRemaining = 12;
+                }
+                statsEl.innerHTML = monthsPassed + ' mois pass\u00e9s \u00b7 ' + monthsRemaining + ' mois restants';
+            }
+
+            // --- VUE MOIS ---
+            else if (state.view === 'MONTH') {
+                container.className = 'grid-month';
+                titleEl.innerText = MONTH_NAMES[state.selectedMonth] + ' ' + state.selectedYear;
+                subtitleEl.innerText = "Chaque point est un jour";
+
+                var daysInMonth = new Date(state.selectedYear, state.selectedMonth + 1, 0).getDate();
+                var today = new Date();
+                today.setHours(0,0,0,0);
+
+                var daysPassed = 0;
+                for (var i = 1; i <= daysInMonth; i++) {
+                    var dot = createDot();
+                    var checkDate = new Date(state.selectedYear, state.selectedMonth, i);
+                    checkDate.setHours(0,0,0,0);
+
+                    if (checkDate.getTime() < today.getTime()) {
+                        dot.classList.add('past');
+                        daysPassed++;
+                    } else if (checkDate.getTime() === today.getTime()) {
+                        dot.classList.add('current');
+                        daysPassed++;
+                    }
+
+                    (function(d) {
+                        dot.onclick = function() { transitionTo('DAY', d); };
+                    })(i);
+                    container.appendChild(dot);
+                }
+
+                var daysRemaining = daysInMonth - daysPassed;
+                statsEl.innerHTML = daysPassed + ' jours pass\u00e9s \u00b7 ' + daysRemaining + ' jours restants';
+            }
+
+            // --- VUE JOUR ---
+            else if (state.view === 'DAY') {
+                container.className = 'grid-day';
+                titleEl.innerText = state.selectedDay + ' ' + MONTH_NAMES[state.selectedMonth] + ' ' + state.selectedYear;
+                subtitleEl.innerText = "Chaque point est une heure";
+
+                var isToday = (state.selectedYear === now.getFullYear() && 
+                               state.selectedMonth === now.getMonth() && 
+                               state.selectedDay === now.getDate());
+                var selectedDate = new Date(state.selectedYear, state.selectedMonth, state.selectedDay);
+                selectedDate.setHours(0,0,0,0);
+                var todayMidnight = new Date(); todayMidnight.setHours(0,0,0,0);
+                var isPastDay = selectedDate.getTime() < todayMidnight.getTime();
+                var currentHour = now.getHours();
+
+                for (var i = 0; i < 24; i++) {
+                    var dot = createDot();
+
+                    if (isPastDay) {
+                        dot.classList.add('past');
+                    } else if (isToday) {
+                        if (i < currentHour) dot.classList.add('past');
+                        else if (i === currentHour) dot.classList.add('current');
+                    }
+                    // Future day: all dots stay default (future)
+
+                    container.appendChild(dot);
+                }
+
+                var hoursPassed, hoursRemaining;
+                if (isPastDay) {
+                    hoursPassed = 24; hoursRemaining = 0;
+                } else if (isToday) {
+                    hoursPassed = currentHour;
+                    hoursRemaining = 24 - currentHour - 1;
+                } else {
+                    hoursPassed = 0; hoursRemaining = 24;
+                }
+                statsEl.innerHTML = hoursPassed + 'h \u00e9coul\u00e9es \u00b7 ' + hoursRemaining + 'h restantes';
+            }
+        }
+
+        function createDot() {
+            var d = document.createElement('div');
+            d.className = 'dot';
+            return d;
+        }
+
+        function transitionTo(nextView, value) {
+            container.classList.add('zoom-in-active');
+
+            showTransitQuote(function() {
+                if (nextView === 'YEAR') state.selectedYear = value;
+                if (nextView === 'MONTH') state.selectedMonth = value;
+                if (nextView === 'DAY') state.selectedDay = value;
+                state.view = nextView;
+                renderView();
+
+                container.style.transform = 'scale(0.8)';
+                container.style.opacity = '0';
+                requestAnimationFrame(function() {
+                    requestAnimationFrame(function() {
+                        container.style.transform = '';
+                        container.style.opacity = '';
+                    });
+                });
+            });
+        }
+
+        function goUpLevel() {
+            var prevView = null;
+            if (state.view === 'DAY') prevView = 'MONTH';
+            else if (state.view === 'MONTH') prevView = 'YEAR';
+            else if (state.view === 'YEAR') prevView = 'LIFE';
+            else return;
+
+            container.classList.add('zoom-out-active');
+            setTimeout(function() {
+                state.view = prevView;
+                renderView();
+                container.style.transform = 'scale(1.5)';
+                container.style.opacity = '0';
+                requestAnimationFrame(function() {
+                    requestAnimationFrame(function() {
+                        container.style.transform = '';
+                        container.style.opacity = '';
+                    });
+                });
+            }, 600);
+        }
+
+        // --- ANTI-SPAM CONTACT ---
+        (function() {
+            var link = document.getElementById('contact-link');
+            if (link) {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    var user = 'contact';
+                    var domain = 'akawaka.fr';
+                    window.location.href = 'mai' + 'lto:' + user + '@' + domain;
+                });
+            }
+        })();
+
+        // --- START ---
+        init();
+    </script>
+</body>
+</html>
